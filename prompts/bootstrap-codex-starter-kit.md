@@ -3,44 +3,45 @@
 Paste this into Codex on a fresh machine to let Codex install this starter kit as the machine's Codex baseline.
 
 ```text
-Install the Codex Starter Kit for OpenAI Codex CLI from GitHub.
+Ты должен установить Codex Starter Kit для OpenAI Codex CLI и проверить, что установка безопасна.
 
-Repository:
+Репозиторий:
 https://github.com/VKirill/codex-starter-kit
 
-Goal:
-- Make this starter kit the baseline Codex setup on this machine
-- Replace ~/.codex/AGENTS.md with the starter-kit global instructions
-- Replace ~/.codex/agents with the starter-kit custom Codex subagents
-- Replace ~/.agents/skills with the starter-kit skill library
-- Replace ~/.codex/hooks and ~/.codex/hooks.json with the starter-kit safety hook setup
-- Replace ~/.codex/config.toml with the starter-kit baseline config
-- Enable GitHub and Superpowers plugin entries through ~/.codex/config.toml
-- Enable public docs MCP servers for Context7, Vue, Nuxt UI, and Nuxt through ~/.codex/config.toml
-- Preserve previous user files by keeping timestamped .bak-* backups
+Цель:
+- сделать этот starter kit базовой настройкой Codex на этой машине
+- установить глобальный ~/.codex/AGENTS.md из templates/AGENTS.md
+- установить кастомных агентов в ~/.codex/agents
+- установить skills в ~/.agents/skills
+- установить safety hooks в ~/.codex/hooks и ~/.codex/hooks.json
+- установить рекомендуемый ~/.codex/config.toml из templates/config.recommended.toml
+- включить GitHub и Superpowers plugin entries через config.toml
+- включить public docs MCP servers для Context7, Vue, Nuxt UI и Nuxt
+- сохранить старые файлы через timestamped .bak-* backups
 
-Steps:
-1. Clone the repository into ~/projects/codex-starter-kit, or pull it if it already exists.
-2. Read README.md and install.py before making changes.
-3. Run the pack validation:
+Работай пошагово:
+1. Если репозитория еще нет, клонируй его в ~/projects/codex-starter-kit.
+2. Если репозиторий уже есть, перейди в него и проверь текущее состояние git.
+3. Прочитай README.md, install.py и templates/config.recommended.toml.
+4. Запусти проверку пакета:
    python3 scripts/validate-pack.py
-4. Run a dry run:
+5. Запусти dry run:
    ./install.sh --dry-run
-5. Show me the planned baseline replacements and count how many agents and skills will be installed.
-6. If the dry run is safe, run the baseline install with backups:
+6. Покажи мне, какие пути будут заменены, и отдельно посчитай агентов и skills.
+7. Если dry run выглядит безопасно, запусти установку с backup-режимом:
    ./install.sh
-7. Confirm that ~/.codex/config.toml now contains the GitHub and Superpowers plugin entries and the Context7/Vue/Nuxt MCP servers.
-8. If the codex CLI is available, run:
+8. Проверь, что ~/.codex/config.toml содержит GitHub и Superpowers plugins, а также MCP servers context7, vue-docs, nuxt-ui-remote и nuxt-remote.
+9. Если команда codex доступна, запусти:
    codex plugin marketplace upgrade
    codex mcp list
-9. Validate generated agents:
+10. Проверь установленных агентов:
    ./install.sh --validate-only
-10. Summarize what changed, where backups were written, and tell me to restart Codex.
+11. В конце кратко напиши, что изменилось, где лежат backups и что нужно перезапустить Codex.
 
-Safety:
-- Do not permanently delete ~/.codex, ~/.agents, or existing agents/skills.
-- The installer should move replaced managed files/directories to .bak-* backups.
-- Do not use --force or --no-backup unless I explicitly approve it.
-- Do not copy secrets, tokens, project-specific paths, local database config, or machine-specific MCP bearer tokens.
-- Keep sandboxing and approvals enabled unless I explicitly ask for a specific change.
+Правила безопасности:
+- не удаляй ~/.codex, ~/.agents или существующие agents/skills без backup
+- не используй --force и --no-backup без моего явного разрешения
+- не копируй secrets, bearer tokens, приватные MCP настройки и локальные database credentials
+- если команда требует повышенного доступа или сетевого разрешения, сначала объясни зачем
+- если проверка падает, остановись, покажи ошибку и предложи самый маленький безопасный fix
 ```
