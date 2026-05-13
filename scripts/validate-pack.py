@@ -30,8 +30,8 @@ try:
 except Exception as exc:
     errors.append(f"templates/config.recommended.toml: {exc}")
 else:
-    if not config.get("features", {}).get("codex_hooks"):
-        errors.append("templates/config.recommended.toml: codex_hooks feature is not enabled")
+    if not config.get("features", {}).get("hooks"):
+        errors.append("templates/config.recommended.toml: hooks feature is not enabled")
     for plugin in ["github@openai-curated", "superpowers@openai-curated"]:
         if not config.get("plugins", {}).get(plugin, {}).get("enabled"):
             errors.append(f"templates/config.recommended.toml: plugin {plugin} is not enabled")
