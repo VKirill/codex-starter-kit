@@ -145,8 +145,8 @@ python3 scripts/validate-pack.py
 | `~/.codex/AGENTS.md` | глобальные рабочие правила | единое поведение Codex во всех проектах |
 | `~/.codex/agents/` | 61 кастомный subagent | роли для разработки, ревью, QA, DevOps, продукта и дизайна |
 | `~/.agents/skills/` | 100 skills | reusable инструкции для задач и доменов |
-| `~/.codex/hooks/` | safety hook scripts | блокировка частых опасных shell-команд |
-| `~/.codex/hooks.json` | hook config | подключение safety hook к Codex |
+| `~/.codex/hooks/` | safety и handoff hook scripts | блокировка опасных shell-команд, автоодобрение известных безопасных permission prompts и подсказки верификации после install/failure |
+| `~/.codex/hooks.json` | hook config | подключение PermissionRequest, PreToolUse и PostToolUse hooks к Codex |
 | `~/.codex/rules/` | правила одобрения команд | автоодобрение частых read-only команд для разработки, Linux-диагностики, package metadata и infra inspection |
 | `~/.codex/config.toml` | baseline config | plugins, MCP servers, approvals, docs discovery |
 
@@ -196,9 +196,12 @@ Installer работает в baseline mode: он делает этот starter 
 - `codex plugin marketplace upgrade` и `codex mcp list` запускаются только если `codex` есть в `PATH`
 - `rules/default.rules` снижает количество запросов подтверждения для read-only команд: package metadata checks, Linux inspection, service status, Docker/Kubernetes/Terraform inspection и GitHub CLI view/list
 - npm workspace формы (`npm --workspace`, `npm -w`, `npm --workspaces`, `npm --prefix`) и pnpm workspace формы (`pnpm --filter`, `pnpm -F`, `pnpm --recursive`, `pnpm -r`, `pnpm --dir`, `pnpm -C`) одобрены для handoff development workflow
+- `hooks/handoff-permission-request.py` автоматически одобряет безопасные PermissionRequest prompts для MCP calls и команд, уже описанных в `rules/default.rules`; это помогает текущим сессиям продолжать работу, если обычные rules ещё не перезагрузились
 - safety hook продолжает блокировать разрушительные или мутирующие варианты: `git reset --hard`, `git clean`, force push, `npm audit fix`, `go env -w`, `journalctl --vacuum-*`, а также mutating `curl`/`wget` requests
 - сообщения hook'а сразу подсказывают Codex, какие read-only проверки выполнить дальше; часть Git cleanup/restore команд проходит один раз после свежей проверки `git status` плюс `git diff` или `git clean -nd` в той же рабочей директории
+- `hooks/handoff-post-tool-use.py` добавляет follow-up context после package installs и failed shell commands, чтобы Codex проверял diff/tests или исправлял конкретную ошибку перед повтором команды
 - MCP servers в starter kit используют `default_tools_approval_mode = "approve"` для handoff flow; database и local-machine MCP всё равно должны использоваться read-only, если пользователь явно не просил mutation
+- `templates/AGENTS.md` трактует "запусти/выполни план" как inline execution. Subagents используются только при явном разрешении на delegation, parallel work или subagents.
 
 Опасный режим:
 

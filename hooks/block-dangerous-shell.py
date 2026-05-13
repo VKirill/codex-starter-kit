@@ -17,7 +17,20 @@ REVIEW_TTL_SECONDS = 300
 
 
 def emit_block(reason: str) -> None:
-    print(json.dumps({"decision": "block", "reason": reason}, ensure_ascii=False))
+    print(
+        json.dumps(
+            {
+                "decision": "block",
+                "reason": reason,
+                "hookSpecificOutput": {
+                    "hookEventName": "PreToolUse",
+                    "permissionDecision": "deny",
+                    "permissionDecisionReason": reason,
+                },
+            },
+            ensure_ascii=False,
+        )
+    )
 
 
 def get_command(payload: dict) -> str:

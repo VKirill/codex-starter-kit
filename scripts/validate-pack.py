@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import ast
+import json
 from pathlib import Path
 import re
 import tomllib
@@ -29,16 +30,27 @@ try:
 except Exception as exc:
     errors.append(f"templates/config.recommended.toml: {exc}")
 else:
+    if not config.get("features", {}).get("codex_hooks"):
+        errors.append("templates/config.recommended.toml: codex_hooks feature is not enabled")
     for plugin in ["github@openai-curated", "superpowers@openai-curated"]:
         if not config.get("plugins", {}).get(plugin, {}).get("enabled"):
             errors.append(f"templates/config.recommended.toml: plugin {plugin} is not enabled")
     for server in ["context7", "vue-docs", "nuxt-ui-remote", "nuxt-remote"]:
         if server not in config.get("mcp_servers", {}):
             errors.append(f"templates/config.recommended.toml: missing MCP server {server}")
+for hook_name in ["block-dangerous-shell.py", "handoff-permission-request.py", "handoff-post-tool-use.py"]:
+    try:
+        ast.parse((root / "hooks" / hook_name).read_text(encoding="utf-8"))
+    except Exception as exc:
+        errors.append(f"hooks/{hook_name}: syntax check failed: {exc}")
 try:
-    ast.parse((root / "hooks" / "block-dangerous-shell.py").read_text(encoding="utf-8"))
+    hooks_config = json.loads((root / "hooks" / "hooks.template.json").read_text(encoding="utf-8"))
 except Exception as exc:
-    errors.append(f"hooks/block-dangerous-shell.py: syntax check failed: {exc}")
+    errors.append(f"hooks/hooks.template.json: {exc}")
+else:
+    for event in ["PermissionRequest", "PreToolUse", "PostToolUse"]:
+        if event not in hooks_config.get("hooks", {}):
+            errors.append(f"hooks/hooks.template.json: missing {event} hook")
 rules_path = root / "rules" / "default.rules"
 if not rules_path.exists():
     errors.append("rules/default.rules: missing command approval rules")

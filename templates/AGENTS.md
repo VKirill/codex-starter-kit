@@ -69,6 +69,7 @@ These instructions apply to every project unless a closer project `AGENTS.md` or
 ## Subagents
 
 - Spawn subagents only when the user explicitly authorizes delegation, parallel work, or subagents.
+- If a plan or skill would benefit from subagents but the user did not explicitly authorize them, execute inline in the current session and mention that choice briefly; do not stop only to ask whether to use subagents.
 - Delegate bounded, independent work that can proceed without blocking the parent's immediate next step.
 - Give each subagent a clear role, scope, ownership, expected output, and verification target.
 - Do not delegate overlapping write scopes to multiple agents.
@@ -79,6 +80,7 @@ These instructions apply to every project unless a closer project `AGENTS.md` or
 ## Planning And Superpowers
 
 - Use Superpowers when the task clearly matches a Superpowers workflow.
+- A user request such as "run this plan" authorizes inline plan execution, not subagent delegation by itself.
 - For feature-scale work, use brainstorming before implementation.
 - For approved designs, create implementation plans with exact files, steps, tests, and verification.
 - Execute approved plans with focused implementation and review checkpoints.

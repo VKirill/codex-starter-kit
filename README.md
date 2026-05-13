@@ -145,8 +145,8 @@ Restart Codex after installation. Global instructions, agents, skills, hooks, an
 | `~/.codex/AGENTS.md` | global working rules | consistent Codex behavior across projects |
 | `~/.codex/agents/` | 61 custom subagents | roles for development, review, QA, DevOps, product, and design |
 | `~/.agents/skills/` | 100 skills | reusable instructions for tasks and domains |
-| `~/.codex/hooks/` | safety hook scripts | guards against common risky shell commands |
-| `~/.codex/hooks.json` | hook config | connects the safety hook to Codex |
+| `~/.codex/hooks/` | safety and handoff hook scripts | guards risky shell commands, auto-approves known safe permission prompts, and nudges verification after installs/failures |
+| `~/.codex/hooks.json` | hook config | connects PermissionRequest, PreToolUse, and PostToolUse hooks to Codex |
 | `~/.codex/rules/` | command approval rules | auto-approves common read-only development, Linux, package metadata, and diagnostics commands |
 | `~/.codex/config.toml` | baseline config | plugins, MCP servers, approvals, docs discovery |
 
@@ -196,9 +196,12 @@ Default safeguards:
 - `codex plugin marketplace upgrade` and `codex mcp list` run only when `codex` is available in `PATH`
 - `rules/default.rules` reduces routine approval prompts for read-only commands such as package metadata checks, Linux inspection commands, service status checks, Docker/Kubernetes/Terraform read-only inspection, and GitHub CLI view/list commands
 - npm workspace forms (`npm --workspace`, `npm -w`, `npm --workspaces`, `npm --prefix`) and pnpm workspace forms (`pnpm --filter`, `pnpm -F`, `pnpm --recursive`, `pnpm -r`, `pnpm --dir`, `pnpm -C`) are approved for handoff development workflows
+- `hooks/handoff-permission-request.py` auto-approves safe PermissionRequest prompts for MCP calls and commands already covered by `rules/default.rules`, which helps current sessions continue when normal rules were not reloaded yet
 - the safety hook still blocks destructive or mutating variants such as `git reset --hard`, `git clean`, force pushes, `npm audit fix`, `go env -w`, `journalctl --vacuum-*`, and mutating `curl`/`wget` requests
 - hook block messages include the read-only checks Codex should run next; selected Git cleanup/restore commands are allowed once after fresh `git status` plus `git diff` or `git clean -nd` review in the same working directory
+- `hooks/handoff-post-tool-use.py` adds follow-up context after package installs and failed shell commands so Codex checks diffs/tests or fixes the concrete failure before repeating work
 - MCP servers in this kit use `default_tools_approval_mode = "approve"` for handoff flow; agents must still keep database and local-machine MCP usage read-only unless the user explicitly asks for mutation
+- `templates/AGENTS.md` treats "run this plan" as inline execution. Subagents are used only when the user explicitly authorizes delegation, parallel work, or subagents.
 
 Dangerous mode:
 
