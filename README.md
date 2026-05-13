@@ -195,6 +195,7 @@ Default safeguards:
 - `skills.config` paths are rewritten for your home directory
 - `codex plugin marketplace upgrade` and `codex mcp list` run only when `codex` is available in `PATH`
 - `rules/default.rules` reduces routine approval prompts for read-only commands such as package metadata checks, Linux inspection commands, service status checks, Docker/Kubernetes/Terraform read-only inspection, and GitHub CLI view/list commands
+- npm workspace forms (`npm --workspace`, `npm -w`, `npm --workspaces`, `npm --prefix`) and pnpm workspace forms (`pnpm --filter`, `pnpm -F`, `pnpm --recursive`, `pnpm -r`, `pnpm --dir`, `pnpm -C`) are approved for handoff development workflows
 - the safety hook still blocks destructive or mutating variants such as `git reset --hard`, `git clean`, force pushes, `npm audit fix`, `go env -w`, `journalctl --vacuum-*`, and mutating `curl`/`wget` requests
 - hook block messages include the read-only checks Codex should run next; selected Git cleanup/restore commands are allowed once after fresh `git status` plus `git diff` or `git clean -nd` review in the same working directory
 - MCP servers in this kit use `default_tools_approval_mode = "approve"` for handoff flow; agents must still keep database and local-machine MCP usage read-only unless the user explicitly asks for mutation

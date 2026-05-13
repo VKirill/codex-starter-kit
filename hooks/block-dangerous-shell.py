@@ -211,8 +211,15 @@ def classify(command: str, workdir: str) -> str | None:
         if program == "go" and len(tokens) >= 3 and tokens[1] == "env" and "-w" in tokens:
             return "go env -w mutates persistent Go configuration. First run `go env <KEY>` or `go env`, explain the intended change, then ask before retrying."
 
-        if program == "npm" and len(tokens) >= 2 and tokens[1] in {"install", "i", "add"} and any(token in {"-g", "--global"} for token in tokens):
-            return "Global npm install mutates the user/system toolchain. Prefer local project install; if a global tool is required, explain why and ask before retrying."
+        if program in {"npm", "pnpm", "yarn", "bun"}:
+            lower_tokens = {token.lower() for token in tokens}
+            if lower_tokens & {"publish", "deploy", "release", "changeset:publish", "release:patch", "release:minor", "release:major"}:
+                return "Package-manager publish/deploy/release command is not auto-approved. First run tests/build, inspect `git status --short`, confirm target package/environment, then ask before retrying."
+            if lower_tokens & {"prune", "cache"} and lower_tokens & {"clean", "delete", "clear"}:
+                return "Package-manager cache/prune cleanup can delete local state. First inspect the target/cache with read-only commands, then ask before retrying cleanup."
+
+        if program in {"npm", "pnpm", "yarn"} and len(tokens) >= 2 and any(token in {"install", "i", "add"} for token in tokens[1:]) and any(token in {"-g", "--global"} for token in tokens):
+            return "Global package install mutates the user/system toolchain. Prefer local project install; if a global tool is required, explain why and ask before retrying."
 
         if program in {"npm", "pnpm", "yarn"} and "audit" in tokens and ("fix" in tokens or "--fix" in tokens):
             return "Package-manager audit fix mutates dependencies and lockfiles. First run the matching read-only audit (`npm audit`, `pnpm audit`, or `yarn audit`) and inspect the diff plan, then ask before applying fixes."

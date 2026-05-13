@@ -195,6 +195,7 @@ Installer работает в baseline mode: он делает этот starter 
 - `skills.config` paths переписываются под ваш home directory
 - `codex plugin marketplace upgrade` и `codex mcp list` запускаются только если `codex` есть в `PATH`
 - `rules/default.rules` снижает количество запросов подтверждения для read-only команд: package metadata checks, Linux inspection, service status, Docker/Kubernetes/Terraform inspection и GitHub CLI view/list
+- npm workspace формы (`npm --workspace`, `npm -w`, `npm --workspaces`, `npm --prefix`) и pnpm workspace формы (`pnpm --filter`, `pnpm -F`, `pnpm --recursive`, `pnpm -r`, `pnpm --dir`, `pnpm -C`) одобрены для handoff development workflow
 - safety hook продолжает блокировать разрушительные или мутирующие варианты: `git reset --hard`, `git clean`, force push, `npm audit fix`, `go env -w`, `journalctl --vacuum-*`, а также mutating `curl`/`wget` requests
 - сообщения hook'а сразу подсказывают Codex, какие read-only проверки выполнить дальше; часть Git cleanup/restore команд проходит один раз после свежей проверки `git status` плюс `git diff` или `git clean -nd` в той же рабочей директории
 - MCP servers в starter kit используют `default_tools_approval_mode = "approve"` для handoff flow; database и local-machine MCP всё равно должны использоваться read-only, если пользователь явно не просил mutation
