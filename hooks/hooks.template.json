@@ -1,0 +1,17 @@
+{
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "^Bash$|^shell$|^unified_exec$|^exec_command$",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 ${HOME}/.codex/hooks/block-dangerous-shell.py",
+            "timeout": 5,
+            "statusMessage": "Checking shell command safety"
+          }
+        ]
+      }
+    ]
+  }
+}

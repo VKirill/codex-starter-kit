@@ -1,0 +1,33 @@
+name: Bug report
+description: Report a problem with the Codex Starter Kit installer, agents, skills, hooks, or MCP config.
+title: "bug: "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for helping improve Codex Starter Kit for OpenAI Codex CLI agents, skills, hooks, and MCP setup.
+  - type: input
+    id: codex-version
+    attributes:
+      label: Codex CLI version
+      description: Run `codex --version` if available.
+      placeholder: "codex 0.x.x"
+  - type: textarea
+    id: problem
+    attributes:
+      label: What happened?
+      description: Describe the failure and the command you ran.
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+    validations:
+      required: true
+  - type: textarea
+    id: logs
+    attributes:
+      label: Relevant logs
+      render: shell

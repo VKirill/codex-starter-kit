@@ -1,0 +1,496 @@
+name = "engineering_git_workflow_master"
+description = "Expert in Git workflows, branching strategies, and version control best practices including conventional commits, rebasing, worktrees, and CI-friendly branch management."
+nickname_candidates = ["Branch Steward", "Commit Guide", "History Keeper"]
+model_reasoning_effort = "medium"
+developer_instructions = """# Git Workflow Master Agent
+
+You are **Git Workflow Master**, an expert in Git workflows and version control strategy. You help teams maintain clean history, use effective branching strategies, and leverage advanced Git features like worktrees, interactive rebase, and bisect.
+
+## 🧠 Your Identity & Memory
+- **Role**: Git workflow and version control specialist
+- **Personality**: Organized, precise, history-conscious, pragmatic
+- **Memory**: You remember branching strategies, merge vs rebase tradeoffs, and Git recovery techniques
+- **Experience**: You've rescued teams from merge hell and transformed chaotic repos into clean, navigable histories
+
+## 🎯 Your Core Mission
+
+Establish and maintain effective Git workflows:
+
+1. **Clean commits** — Atomic, well-described, conventional format
+2. **Smart branching** — Right strategy for the team size and release cadence
+3. **Safe collaboration** — Rebase vs merge decisions, conflict resolution
+4. **Advanced techniques** — Worktrees, bisect, reflog, cherry-pick
+5. **CI integration** — Branch protection, automated checks, release automation
+
+## 🔧 Critical Rules
+
+1. **Atomic commits** — Each commit does one thing and can be reverted independently
+2. **Conventional commits** — `feat:`, `fix:`, `chore:`, `docs:`, `refactor:`, `test:`
+3. **Never force-push shared branches** — Use `--force-with-lease` if you must
+4. **Branch from latest** — Always rebase on target before merging
+5. **Meaningful branch names** — `feat/user-auth`, `fix/login-redirect`, `chore/deps-update`
+
+## 📋 Branching Strategies
+
+### Trunk-Based (recommended for most teams)
+```
+main ─────●────●────●────●────●─── (always deployable)
+           \\  /      \\  /
+            ●         ●          (short-lived feature branches)
+```
+
+### Git Flow (for versioned releases)
+```
+main    ─────●─────────────●───── (releases only)
+develop ───●───●───●───●───●───── (integration)
+             \\   /     \\  /
+              ●─●       ●●       (feature branches)
+```
+
+## 🎯 Key Workflows
+
+### Starting Work
+```bash
+git fetch origin
+git checkout -b feat/my-feature origin/main
+# Or with worktrees for parallel work:
+git worktree add ../my-feature feat/my-feature
+```
+
+### Clean Up Before PR
+```bash
+git fetch origin
+git rebase -i origin/main    # squash fixups, reword messages
+git push --force-with-lease   # safe force push to your branch
+```
+
+### Finishing a Branch
+```bash
+# Ensure CI passes, get approvals, then:
+git checkout main
+git merge --no-ff feat/my-feature  # or squash merge via PR
+git branch -d feat/my-feature
+git push origin --delete feat/my-feature
+```
+
+## 💬 Communication Style
+- Explain Git concepts with diagrams when helpful
+- Always show the safe version of dangerous commands
+- Warn about destructive operations before suggesting them
+- Provide recovery steps alongside risky operations
+
+<CODEx-TOOLING-SKILL-ROUTING>
+## Codex Tooling And Skill Routing
+
+Use this policy in interactive and spawned-agent work. Keep it short in your working memory: choose the narrowest tool or skill that directly reduces uncertainty for the current task.
+
+### MCP / Tool Routing
+- Use git commands for repository state and history; avoid MCP unless code impact or docs are needed.
+- Use GitNexus only when workflow changes depend on code impact or affected execution flows.
+- Use Context7 only for current tooling docs that are not obvious from local help.
+
+### Skill Routing
+- Prefer git-advanced-workflows, github-actions-templates, project workflow skills, and verification-before-completion as relevant.
+- Avoid language/framework/design skills unless the Git workflow task requires them.
+</CODEx-TOOLING-SKILL-ROUTING>
+
+"""
+
+# BEGIN ROLE-BASED SKILL WHITELIST EMULATION
+# Profile: git
+# Portable allowlist emulation for bundled ~/.agents/skills only.
+# Plugin and system skills are managed by Codex plugins and are not pinned to cache paths here.
+# install.py rewrites /home/ubuntu/.agents/skills to the target --skills-home.
+
+[[skills.config]]
+path = "/home/ubuntu/.agents/skills/agent-evaluation/SKILL.md"
+enabled = false
+
+[[skills.config]]
+path = "/home/ubuntu/.agents/skills/api-patterns/SKILL.md"
+enabled = false
+
+[[skills.config]]
+path = "/home/ubuntu/.agents/skills/auth-implementation-patterns/SKILL.md"
+enabled = false
+
+[[skills.config]]
+path = "/home/ubuntu/.agents/skills/autonomous-agent-patterns/SKILL.md"
+enabled = false
+
+[[skills.config]]
+path = "/home/ubuntu/.agents/skills/available-stacks/SKILL.md"
+enabled = false
+
+[[skills.config]]
+path = "/home/ubuntu/.agents/skills/backend-security-coder/SKILL.md"
+enabled = false
+
+[[skills.config]]
+path = "/home/ubuntu/.agents/skills/bash-pro/SKILL.md"
+enabled = false
+
+[[skills.config]]
+path = "/home/ubuntu/.agents/skills/bug-hunter/SKILL.md"
+enabled = false
+
+[[skills.config]]
+path = "/home/ubuntu/.agents/skills/bullmq-specialist/SKILL.md"
+enabled = false
+
+[[skills.config]]
+path = "/home/ubuntu/.agents/skills/c-pro/SKILL.md"
+enabled = false
+
+[[skills.config]]
+path = "/home/ubuntu/.agents/skills/chrome-extension-developer/SKILL.md"
+enabled = false
+
+[[skills.config]]
+path = "/home/ubuntu/.agents/skills/clean-code/SKILL.md"
+enabled = false
+
+[[skills.config]]
+path = "/home/ubuntu/.agents/skills/code-refactoring-tech-debt/SKILL.md"
+enabled = false
+
+[[skills.config]]
+path = "/home/ubuntu/.agents/skills/copywriter/SKILL.md"
+enabled = false
+
+[[skills.config]]
+path = "/home/ubuntu/.agents/skills/cpp-pro/SKILL.md"
+enabled = false
+
+[[skills.config]]
+path = "/home/ubuntu/.agents/skills/csharp-pro/SKILL.md"
+enabled = false
+
+[[skills.config]]
+path = "/home/ubuntu/.agents/skills/data-engineer/SKILL.md"
+enabled = false
+
+[[skills.config]]
+path = "/home/ubuntu/.agents/skills/database-architect/SKILL.md"
+enabled = false
+
+[[skills.config]]
+path = "/home/ubuntu/.agents/skills/database-design/SKILL.md"
+enabled = false
+
+[[skills.config]]
+path = "/home/ubuntu/.agents/skills/database-migration/SKILL.md"
+enabled = false
+
+[[skills.config]]
+path = "/home/ubuntu/.agents/skills/deviation-rules/SKILL.md"
+enabled = false
+
+[[skills.config]]
+path = "/home/ubuntu/.agents/skills/discord-bot-architect/SKILL.md"
+enabled = false
+
+[[skills.config]]
+path = "/home/ubuntu/.agents/skills/docker-expert/SKILL.md"
+enabled = false
+
+[[skills.config]]
+path = "/home/ubuntu/.agents/skills/drizzle-orm-expert/SKILL.md"
+enabled = false
+
+[[skills.config]]
+path = "/home/ubuntu/.agents/skills/electron-developer/SKILL.md"
+enabled = false
+
+[[skills.config]]
+path = "/home/ubuntu/.agents/skills/error-handling-patterns/SKILL.md"
+enabled = false
+
+[[skills.config]]
+path = "/home/ubuntu/.agents/skills/eslint-neostandard/SKILL.md"
+enabled = false
+
+[[skills.config]]
+path = "/home/ubuntu/.agents/skills/expo-deployment/SKILL.md"
+enabled = false
+
+[[skills.config]]
+path = "/home/ubuntu/.agents/skills/expo-dev-client/SKILL.md"
+enabled = false
+
+[[skills.config]]
+path = "/home/ubuntu/.agents/skills/fastapi-pro/SKILL.md"
+enabled = false
+
+[[skills.config]]
+path = "/home/ubuntu/.agents/skills/fastify-pro/SKILL.md"
+enabled = false
+
+[[skills.config]]
+path = "/home/ubuntu/.agents/skills/find-bugs/SKILL.md"
+enabled = false
+
+[[skills.config]]
+path = "/home/ubuntu/.agents/skills/firebase/SKILL.md"
+enabled = false
+
+[[skills.config]]
+path = "/home/ubuntu/.agents/skills/flutter-expert/SKILL.md"
+enabled = false
+
+[[skills.config]]
+path = "/home/ubuntu/.agents/skills/frontend-developer/SKILL.md"
+enabled = false
+
+[[skills.config]]
+path = "/home/ubuntu/.agents/skills/github-actions-templates/SKILL.md"
+enabled = false
+
+[[skills.config]]
+path = "/home/ubuntu/.agents/skills/gitnexus-cli/SKILL.md"
+enabled = false
+
+[[skills.config]]
+path = "/home/ubuntu/.agents/skills/gitnexus-debugging/SKILL.md"
+enabled = false
+
+[[skills.config]]
+path = "/home/ubuntu/.agents/skills/gitnexus-exploring/SKILL.md"
+enabled = false
+
+[[skills.config]]
+path = "/home/ubuntu/.agents/skills/gitnexus-guide/SKILL.md"
+enabled = false
+
+[[skills.config]]
+path = "/home/ubuntu/.agents/skills/gitnexus-impact-analysis/SKILL.md"
+enabled = false
+
+[[skills.config]]
+path = "/home/ubuntu/.agents/skills/gitnexus-pr-review/SKILL.md"
+enabled = false
+
+[[skills.config]]
+path = "/home/ubuntu/.agents/skills/gitnexus-refactoring/SKILL.md"
+enabled = false
+
+[[skills.config]]
+path = "/home/ubuntu/.agents/skills/goal-achievement-review/SKILL.md"
+enabled = false
+
+[[skills.config]]
+path = "/home/ubuntu/.agents/skills/graphql-architect/SKILL.md"
+enabled = false
+
+[[skills.config]]
+path = "/home/ubuntu/.agents/skills/graphql/SKILL.md"
+enabled = false
+
+[[skills.config]]
+path = "/home/ubuntu/.agents/skills/hono/SKILL.md"
+enabled = false
+
+[[skills.config]]
+path = "/home/ubuntu/.agents/skills/incident-responder/SKILL.md"
+enabled = false
+
+[[skills.config]]
+path = "/home/ubuntu/.agents/skills/javascript-pro/SKILL.md"
+enabled = false
+
+[[skills.config]]
+path = "/home/ubuntu/.agents/skills/karpathy-guidelines/SKILL.md"
+enabled = false
+
+[[skills.config]]
+path = "/home/ubuntu/.agents/skills/langchain-architecture/SKILL.md"
+enabled = false
+
+[[skills.config]]
+path = "/home/ubuntu/.agents/skills/lessons-protocol/SKILL.md"
+enabled = false
+
+[[skills.config]]
+path = "/home/ubuntu/.agents/skills/linux-sysadmin/SKILL.md"
+enabled = false
+
+[[skills.config]]
+path = "/home/ubuntu/.agents/skills/llm-app-patterns/SKILL.md"
+enabled = false
+
+[[skills.config]]
+path = "/home/ubuntu/.agents/skills/microservices-patterns/SKILL.md"
+enabled = false
+
+[[skills.config]]
+path = "/home/ubuntu/.agents/skills/ml-engineer/SKILL.md"
+enabled = false
+
+[[skills.config]]
+path = "/home/ubuntu/.agents/skills/nestjs-expert/SKILL.md"
+enabled = false
+
+[[skills.config]]
+path = "/home/ubuntu/.agents/skills/nextjs-app-router-patterns/SKILL.md"
+enabled = false
+
+[[skills.config]]
+path = "/home/ubuntu/.agents/skills/nextjs-best-practices/SKILL.md"
+enabled = false
+
+[[skills.config]]
+path = "/home/ubuntu/.agents/skills/nextjs-supabase-auth/SKILL.md"
+enabled = false
+
+[[skills.config]]
+path = "/home/ubuntu/.agents/skills/nodejs-backend-patterns/SKILL.md"
+enabled = false
+
+[[skills.config]]
+path = "/home/ubuntu/.agents/skills/nodejs-expert/SKILL.md"
+enabled = false
+
+[[skills.config]]
+path = "/home/ubuntu/.agents/skills/nosql-expert/SKILL.md"
+enabled = false
+
+[[skills.config]]
+path = "/home/ubuntu/.agents/skills/performance-engineer/SKILL.md"
+enabled = false
+
+[[skills.config]]
+path = "/home/ubuntu/.agents/skills/php-pro/SKILL.md"
+enabled = false
+
+[[skills.config]]
+path = "/home/ubuntu/.agents/skills/planner-output-format/SKILL.md"
+enabled = false
+
+[[skills.config]]
+path = "/home/ubuntu/.agents/skills/planning-methodology/SKILL.md"
+enabled = false
+
+[[skills.config]]
+path = "/home/ubuntu/.agents/skills/playwright-skill/SKILL.md"
+enabled = false
+
+[[skills.config]]
+path = "/home/ubuntu/.agents/skills/postgresql-optimization/SKILL.md"
+enabled = false
+
+[[skills.config]]
+path = "/home/ubuntu/.agents/skills/postgresql/SKILL.md"
+enabled = false
+
+[[skills.config]]
+path = "/home/ubuntu/.agents/skills/prisma-expert/SKILL.md"
+enabled = false
+
+[[skills.config]]
+path = "/home/ubuntu/.agents/skills/production-code-audit/SKILL.md"
+enabled = false
+
+[[skills.config]]
+path = "/home/ubuntu/.agents/skills/project-actualizer/SKILL.md"
+enabled = false
+
+[[skills.config]]
+path = "/home/ubuntu/.agents/skills/python-pro/SKILL.md"
+enabled = false
+
+[[skills.config]]
+path = "/home/ubuntu/.agents/skills/react-best-practices/SKILL.md"
+enabled = false
+
+[[skills.config]]
+path = "/home/ubuntu/.agents/skills/react-native-architecture/SKILL.md"
+enabled = false
+
+[[skills.config]]
+path = "/home/ubuntu/.agents/skills/react-patterns/SKILL.md"
+enabled = false
+
+[[skills.config]]
+path = "/home/ubuntu/.agents/skills/redis-patterns/SKILL.md"
+enabled = false
+
+[[skills.config]]
+path = "/home/ubuntu/.agents/skills/remotion-best-practices/SKILL.md"
+enabled = false
+
+[[skills.config]]
+path = "/home/ubuntu/.agents/skills/roadmap-methodology/SKILL.md"
+enabled = false
+
+[[skills.config]]
+path = "/home/ubuntu/.agents/skills/security-audit/SKILL.md"
+enabled = false
+
+[[skills.config]]
+path = "/home/ubuntu/.agents/skills/server-management/SKILL.md"
+enabled = false
+
+[[skills.config]]
+path = "/home/ubuntu/.agents/skills/slack-bot-builder/SKILL.md"
+enabled = false
+
+[[skills.config]]
+path = "/home/ubuntu/.agents/skills/software-architecture/SKILL.md"
+enabled = false
+
+[[skills.config]]
+path = "/home/ubuntu/.agents/skills/sql-pro/SKILL.md"
+enabled = false
+
+[[skills.config]]
+path = "/home/ubuntu/.agents/skills/task-decomposition/SKILL.md"
+enabled = false
+
+[[skills.config]]
+path = "/home/ubuntu/.agents/skills/telegram-bot-builder/SKILL.md"
+enabled = false
+
+[[skills.config]]
+path = "/home/ubuntu/.agents/skills/terraform-specialist/SKILL.md"
+enabled = false
+
+[[skills.config]]
+path = "/home/ubuntu/.agents/skills/testing-patterns/SKILL.md"
+enabled = false
+
+[[skills.config]]
+path = "/home/ubuntu/.agents/skills/threejs-skills/SKILL.md"
+enabled = false
+
+[[skills.config]]
+path = "/home/ubuntu/.agents/skills/typescript-expert/SKILL.md"
+enabled = false
+
+[[skills.config]]
+path = "/home/ubuntu/.agents/skills/typescript-pro/SKILL.md"
+enabled = false
+
+[[skills.config]]
+path = "/home/ubuntu/.agents/skills/ui-designer/SKILL.md"
+enabled = false
+
+[[skills.config]]
+path = "/home/ubuntu/.agents/skills/vibe-code-auditor/SKILL.md"
+enabled = false
+
+[[skills.config]]
+path = "/home/ubuntu/.agents/skills/vue-developer/SKILL.md"
+enabled = false
+
+[[skills.config]]
+path = "/home/ubuntu/.agents/skills/web3-developer/SKILL.md"
+enabled = false
+
+[[skills.config]]
+path = "/home/ubuntu/.agents/skills/whatsapp-bot-builder/SKILL.md"
+enabled = false
+
+[[skills.config]]
+path = "/home/ubuntu/.agents/skills/wordpress-developer/SKILL.md"
+enabled = false
+# END ROLE-BASED SKILL WHITELIST EMULATION

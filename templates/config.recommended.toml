@@ -1,0 +1,70 @@
+# Codex Starter Kit baseline config for a fresh, ready-to-work setup.
+# install.py writes this file to ~/.codex/config.toml by default.
+# It intentionally avoids project-specific paths, secrets, local bearer tokens,
+# and private database settings.
+
+model = "gpt-5.5"
+model_reasoning_effort = "high"
+approval_policy = "on-request"
+sandbox_mode = "workspace-write"
+web_search = "cached"
+suppress_unstable_features_warning = true
+project_doc_fallback_filenames = ["CLAUDE.md", ".agents.md"]
+project_doc_max_bytes = 65536
+
+[sandbox_workspace_write]
+network_access = true
+
+[agents]
+max_threads = 6
+max_depth = 1
+
+# Official/curated Codex plugins. Codex fetches/caches their skills, apps,
+# hooks, and MCP capabilities when the plugin system is enabled and restarted.
+[plugins."github@openai-curated"]
+enabled = true
+
+[plugins."superpowers@openai-curated"]
+enabled = true
+
+[features]
+plugin_hooks = true
+
+# Public remote documentation MCP servers. They are enabled by default because
+# they do not require local daemons or machine-specific bearer tokens.
+[mcp_servers.context7]
+url = "https://mcp.context7.com/mcp"
+enabled = true
+default_tools_approval_mode = "approve"
+
+[mcp_servers.vue-docs]
+url = "https://mcp.vue-mcp.org/mcp"
+enabled = true
+default_tools_approval_mode = "approve"
+
+[mcp_servers.nuxt-ui-remote]
+url = "https://ui.nuxt.com/mcp"
+enabled = true
+default_tools_approval_mode = "approve"
+
+[mcp_servers.nuxt-remote]
+url = "https://nuxt.com/mcp"
+enabled = true
+default_tools_approval_mode = "approve"
+
+# Optional local code-intelligence MCP examples.
+# Enable only after installing/running the matching local server.
+# [mcp_servers.serena]
+# url = "http://127.0.0.1:9400/mcp"
+# bearer_token_env_var = "CODEX_MCP_BEARER"
+# default_tools_approval_mode = "approve"
+#
+# [mcp_servers.gitnexus]
+# url = "http://127.0.0.1:9401/api/mcp"
+# bearer_token_env_var = "CODEX_MCP_BEARER"
+# default_tools_approval_mode = "approve"
+#
+# [mcp_servers.postgres]
+# url = "http://127.0.0.1:9402/mcp"
+# bearer_token_env_var = "CODEX_MCP_BEARER"
+# default_tools_approval_mode = "prompt"

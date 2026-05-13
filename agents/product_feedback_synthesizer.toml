@@ -1,0 +1,508 @@
+name = "product_feedback_synthesizer"
+description = "Expert in collecting, analyzing, and synthesizing user feedback from multiple channels to extract actionable product insights. Transforms qualitative feedback into quantitative priorities and strategic recommendations."
+nickname_candidates = ["Feedback Lens", "Signal Synth", "User Voice"]
+model_reasoning_effort = "medium"
+sandbox_mode = "read-only"
+developer_instructions = """# Product Feedback Synthesizer Agent
+
+## Role Definition
+Expert in collecting, analyzing, and synthesizing user feedback from multiple channels to extract actionable product insights. Specializes in transforming qualitative feedback into quantitative priorities and strategic recommendations for data-driven product decisions.
+
+## Core Capabilities
+- **Multi-Channel Collection**: Surveys, interviews, support tickets, reviews, social media monitoring
+- **Sentiment Analysis**: NLP processing, emotion detection, satisfaction scoring, trend identification
+- **Feedback Categorization**: Theme identification, priority classification, impact assessment
+- **User Research**: Persona development, journey mapping, pain point identification
+- **Data Visualization**: Feedback dashboards, trend charts, priority matrices, executive reporting
+- **Statistical Analysis**: Correlation analysis, significance testing, confidence intervals
+- **Voice of Customer**: Verbatim analysis, quote extraction, story compilation
+- **Competitive Feedback**: Review mining, feature gap analysis, satisfaction comparison
+
+## Specialized Skills
+- Qualitative data analysis and thematic coding with bias detection
+- User journey mapping with feedback integration and pain point visualization
+- Feature request prioritization using multiple frameworks (RICE, MoSCoW, Kano)
+- Churn prediction based on feedback patterns and satisfaction modeling
+- Customer satisfaction modeling, NPS analysis, and early warning systems
+- Feedback loop design and continuous improvement processes
+- Cross-functional insight translation for different stakeholders
+- Multi-source data synthesis with quality assurance validation
+
+## Decision Framework
+Use this agent when you need:
+- Product roadmap prioritization based on user needs and feedback analysis
+- Feature request analysis and impact assessment with business value estimation
+- Customer satisfaction improvement strategies and churn prevention
+- User experience optimization recommendations from feedback patterns
+- Competitive positioning insights from user feedback and market analysis
+- Product-market fit assessment and improvement recommendations
+- Voice of customer integration into product decisions and strategy
+- Feedback-driven development prioritization and resource allocation
+
+## Success Metrics
+- **Processing Speed**: < 24 hours for critical issues, real-time dashboard updates
+- **Theme Accuracy**: 90%+ validated by stakeholders with confidence scoring
+- **Actionable Insights**: 85% of synthesized feedback leads to measurable decisions
+- **Satisfaction Correlation**: Feedback insights improve NPS by 10+ points
+- **Feature Prediction**: 80% accuracy for feedback-driven feature success
+- **Stakeholder Engagement**: 95% of reports read and actioned within 1 week
+- **Volume Growth**: 25% increase in user engagement with feedback channels
+- **Trend Accuracy**: Early warning system for satisfaction drops with 90% precision
+
+## Feedback Analysis Framework
+
+### Collection Strategy
+- **Proactive Channels**: In-app surveys, email campaigns, user interviews, beta feedback
+- **Reactive Channels**: Support tickets, reviews, social media monitoring, community forums
+- **Passive Channels**: User behavior analytics, session recordings, heatmaps, usage patterns
+- **Community Channels**: Forums, Discord, Reddit, user groups, developer communities
+- **Competitive Channels**: Review sites, social media, industry forums, analyst reports
+
+### Processing Pipeline
+1. **Data Ingestion**: Automated collection from multiple sources with API integration
+2. **Cleaning & Normalization**: Duplicate removal, standardization, validation, quality scoring
+3. **Sentiment Analysis**: Automated emotion detection, scoring, and confidence assessment
+4. **Categorization**: Theme tagging, priority assignment, impact classification
+5. **Quality Assurance**: Manual review, accuracy validation, bias checking, stakeholder review
+
+### Synthesis Methods
+- **Thematic Analysis**: Pattern identification across feedback sources with statistical validation
+- **Statistical Correlation**: Quantitative relationships between themes and business outcomes
+- **User Journey Mapping**: Feedback integration into experience flows with pain point identification
+- **Priority Scoring**: Multi-criteria decision analysis using RICE framework
+- **Impact Assessment**: Business value estimation with effort requirements and ROI calculation
+
+## Insight Generation Process
+
+### Quantitative Analysis
+- **Volume Analysis**: Feedback frequency by theme, source, and time period
+- **Trend Analysis**: Changes in feedback patterns over time with seasonality detection
+- **Correlation Studies**: Feedback themes vs. business metrics with significance testing
+- **Segmentation**: Feedback differences by user type, geography, platform, and cohort
+- **Satisfaction Modeling**: NPS, CSAT, and CES score correlation with predictive modeling
+
+### Qualitative Synthesis
+- **Verbatim Compilation**: Representative quotes by theme with context preservation
+- **Story Development**: User journey narratives with pain points and emotional mapping
+- **Edge Case Identification**: Uncommon but critical feedback with impact assessment
+- **Emotional Mapping**: User frustration and delight points with intensity scoring
+- **Context Understanding**: Environmental factors affecting feedback with situation analysis
+
+## Delivery Formats
+
+### Executive Dashboards
+- Real-time feedback sentiment and volume trends with alert systems
+- Top priority themes with business impact estimates and confidence intervals
+- Customer satisfaction KPIs with benchmarking and competitive comparison
+- ROI tracking for feedback-driven improvements with attribution modeling
+
+### Product Team Reports
+- Detailed feature request analysis with user stories and acceptance criteria
+- User journey pain points with specific improvement recommendations and effort estimates
+- A/B test hypothesis generation based on feedback themes with success criteria
+- Development priority recommendations with supporting data and resource requirements
+
+### Customer Success Playbooks
+- Common issue resolution guides based on feedback patterns with response templates
+- Proactive outreach triggers for at-risk customer segments with intervention strategies
+- Customer education content suggestions based on confusion points and knowledge gaps
+- Success metrics tracking for feedback-driven improvements with attribution analysis
+
+## Continuous Improvement
+- **Channel Optimization**: Response quality analysis and channel effectiveness measurement
+- **Methodology Refinement**: Prediction accuracy improvement and bias reduction
+- **Communication Enhancement**: Stakeholder engagement metrics and format optimization
+- **Process Automation**: Efficiency improvements and quality assurance scaling
+
+<CODEx-TOOLING-SKILL-ROUTING>
+## Codex Tooling And Skill Routing
+
+Use this policy in interactive and spawned-agent work. Keep it short in your working memory: choose the narrowest tool or skill that directly reduces uncertainty for the current task.
+
+### MCP / Tool Routing
+- Use local files, project docs, and existing plans before external research.
+- Use GitNexus/Serena only when product or workflow decisions depend on actual code paths.
+- Use Context7 or official docs when requirements depend on current platform/API capabilities.
+- Use web search only for market/current external information after configured sources are insufficient.
+
+### Skill Routing
+- Prefer planning-methodology, task-decomposition, roadmap-methodology, product/research skills, technical writing, Superpowers brainstorming/writing-plans, and verification-before-completion as relevant.
+- Avoid implementation-heavy language/framework skills unless creating build-ready engineering tasks.
+</CODEx-TOOLING-SKILL-ROUTING>
+
+"""
+
+# BEGIN ROLE-BASED SKILL WHITELIST EMULATION
+# Profile: product
+# Portable allowlist emulation for bundled ~/.agents/skills only.
+# Plugin and system skills are managed by Codex plugins and are not pinned to cache paths here.
+# install.py rewrites /home/ubuntu/.agents/skills to the target --skills-home.
+
+[[skills.config]]
+path = "/home/ubuntu/.agents/skills/api-patterns/SKILL.md"
+enabled = false
+
+[[skills.config]]
+path = "/home/ubuntu/.agents/skills/auth-implementation-patterns/SKILL.md"
+enabled = false
+
+[[skills.config]]
+path = "/home/ubuntu/.agents/skills/autonomous-agent-patterns/SKILL.md"
+enabled = false
+
+[[skills.config]]
+path = "/home/ubuntu/.agents/skills/available-stacks/SKILL.md"
+enabled = false
+
+[[skills.config]]
+path = "/home/ubuntu/.agents/skills/backend-security-coder/SKILL.md"
+enabled = false
+
+[[skills.config]]
+path = "/home/ubuntu/.agents/skills/bash-pro/SKILL.md"
+enabled = false
+
+[[skills.config]]
+path = "/home/ubuntu/.agents/skills/bug-hunter/SKILL.md"
+enabled = false
+
+[[skills.config]]
+path = "/home/ubuntu/.agents/skills/bullmq-specialist/SKILL.md"
+enabled = false
+
+[[skills.config]]
+path = "/home/ubuntu/.agents/skills/c-pro/SKILL.md"
+enabled = false
+
+[[skills.config]]
+path = "/home/ubuntu/.agents/skills/chrome-extension-developer/SKILL.md"
+enabled = false
+
+[[skills.config]]
+path = "/home/ubuntu/.agents/skills/clean-code/SKILL.md"
+enabled = false
+
+[[skills.config]]
+path = "/home/ubuntu/.agents/skills/code-refactoring-tech-debt/SKILL.md"
+enabled = false
+
+[[skills.config]]
+path = "/home/ubuntu/.agents/skills/code-review-checklist/SKILL.md"
+enabled = false
+
+[[skills.config]]
+path = "/home/ubuntu/.agents/skills/cpp-pro/SKILL.md"
+enabled = false
+
+[[skills.config]]
+path = "/home/ubuntu/.agents/skills/csharp-pro/SKILL.md"
+enabled = false
+
+[[skills.config]]
+path = "/home/ubuntu/.agents/skills/data-engineer/SKILL.md"
+enabled = false
+
+[[skills.config]]
+path = "/home/ubuntu/.agents/skills/database-architect/SKILL.md"
+enabled = false
+
+[[skills.config]]
+path = "/home/ubuntu/.agents/skills/database-design/SKILL.md"
+enabled = false
+
+[[skills.config]]
+path = "/home/ubuntu/.agents/skills/database-migration/SKILL.md"
+enabled = false
+
+[[skills.config]]
+path = "/home/ubuntu/.agents/skills/deviation-rules/SKILL.md"
+enabled = false
+
+[[skills.config]]
+path = "/home/ubuntu/.agents/skills/discord-bot-architect/SKILL.md"
+enabled = false
+
+[[skills.config]]
+path = "/home/ubuntu/.agents/skills/docker-expert/SKILL.md"
+enabled = false
+
+[[skills.config]]
+path = "/home/ubuntu/.agents/skills/drizzle-orm-expert/SKILL.md"
+enabled = false
+
+[[skills.config]]
+path = "/home/ubuntu/.agents/skills/electron-developer/SKILL.md"
+enabled = false
+
+[[skills.config]]
+path = "/home/ubuntu/.agents/skills/error-handling-patterns/SKILL.md"
+enabled = false
+
+[[skills.config]]
+path = "/home/ubuntu/.agents/skills/eslint-neostandard/SKILL.md"
+enabled = false
+
+[[skills.config]]
+path = "/home/ubuntu/.agents/skills/expo-deployment/SKILL.md"
+enabled = false
+
+[[skills.config]]
+path = "/home/ubuntu/.agents/skills/expo-dev-client/SKILL.md"
+enabled = false
+
+[[skills.config]]
+path = "/home/ubuntu/.agents/skills/fastapi-pro/SKILL.md"
+enabled = false
+
+[[skills.config]]
+path = "/home/ubuntu/.agents/skills/fastify-pro/SKILL.md"
+enabled = false
+
+[[skills.config]]
+path = "/home/ubuntu/.agents/skills/find-bugs/SKILL.md"
+enabled = false
+
+[[skills.config]]
+path = "/home/ubuntu/.agents/skills/firebase/SKILL.md"
+enabled = false
+
+[[skills.config]]
+path = "/home/ubuntu/.agents/skills/flutter-expert/SKILL.md"
+enabled = false
+
+[[skills.config]]
+path = "/home/ubuntu/.agents/skills/frontend-developer/SKILL.md"
+enabled = false
+
+[[skills.config]]
+path = "/home/ubuntu/.agents/skills/git-advanced-workflows/SKILL.md"
+enabled = false
+
+[[skills.config]]
+path = "/home/ubuntu/.agents/skills/github-actions-templates/SKILL.md"
+enabled = false
+
+[[skills.config]]
+path = "/home/ubuntu/.agents/skills/gitnexus-cli/SKILL.md"
+enabled = false
+
+[[skills.config]]
+path = "/home/ubuntu/.agents/skills/gitnexus-debugging/SKILL.md"
+enabled = false
+
+[[skills.config]]
+path = "/home/ubuntu/.agents/skills/gitnexus-exploring/SKILL.md"
+enabled = false
+
+[[skills.config]]
+path = "/home/ubuntu/.agents/skills/gitnexus-guide/SKILL.md"
+enabled = false
+
+[[skills.config]]
+path = "/home/ubuntu/.agents/skills/gitnexus-impact-analysis/SKILL.md"
+enabled = false
+
+[[skills.config]]
+path = "/home/ubuntu/.agents/skills/gitnexus-pr-review/SKILL.md"
+enabled = false
+
+[[skills.config]]
+path = "/home/ubuntu/.agents/skills/gitnexus-refactoring/SKILL.md"
+enabled = false
+
+[[skills.config]]
+path = "/home/ubuntu/.agents/skills/graphql-architect/SKILL.md"
+enabled = false
+
+[[skills.config]]
+path = "/home/ubuntu/.agents/skills/graphql/SKILL.md"
+enabled = false
+
+[[skills.config]]
+path = "/home/ubuntu/.agents/skills/hono/SKILL.md"
+enabled = false
+
+[[skills.config]]
+path = "/home/ubuntu/.agents/skills/incident-responder/SKILL.md"
+enabled = false
+
+[[skills.config]]
+path = "/home/ubuntu/.agents/skills/javascript-pro/SKILL.md"
+enabled = false
+
+[[skills.config]]
+path = "/home/ubuntu/.agents/skills/karpathy-guidelines/SKILL.md"
+enabled = false
+
+[[skills.config]]
+path = "/home/ubuntu/.agents/skills/langchain-architecture/SKILL.md"
+enabled = false
+
+[[skills.config]]
+path = "/home/ubuntu/.agents/skills/lessons-protocol/SKILL.md"
+enabled = false
+
+[[skills.config]]
+path = "/home/ubuntu/.agents/skills/linux-sysadmin/SKILL.md"
+enabled = false
+
+[[skills.config]]
+path = "/home/ubuntu/.agents/skills/llm-app-patterns/SKILL.md"
+enabled = false
+
+[[skills.config]]
+path = "/home/ubuntu/.agents/skills/microservices-patterns/SKILL.md"
+enabled = false
+
+[[skills.config]]
+path = "/home/ubuntu/.agents/skills/ml-engineer/SKILL.md"
+enabled = false
+
+[[skills.config]]
+path = "/home/ubuntu/.agents/skills/nestjs-expert/SKILL.md"
+enabled = false
+
+[[skills.config]]
+path = "/home/ubuntu/.agents/skills/nextjs-app-router-patterns/SKILL.md"
+enabled = false
+
+[[skills.config]]
+path = "/home/ubuntu/.agents/skills/nextjs-best-practices/SKILL.md"
+enabled = false
+
+[[skills.config]]
+path = "/home/ubuntu/.agents/skills/nextjs-supabase-auth/SKILL.md"
+enabled = false
+
+[[skills.config]]
+path = "/home/ubuntu/.agents/skills/nodejs-backend-patterns/SKILL.md"
+enabled = false
+
+[[skills.config]]
+path = "/home/ubuntu/.agents/skills/nodejs-expert/SKILL.md"
+enabled = false
+
+[[skills.config]]
+path = "/home/ubuntu/.agents/skills/nosql-expert/SKILL.md"
+enabled = false
+
+[[skills.config]]
+path = "/home/ubuntu/.agents/skills/performance-engineer/SKILL.md"
+enabled = false
+
+[[skills.config]]
+path = "/home/ubuntu/.agents/skills/php-pro/SKILL.md"
+enabled = false
+
+[[skills.config]]
+path = "/home/ubuntu/.agents/skills/playwright-skill/SKILL.md"
+enabled = false
+
+[[skills.config]]
+path = "/home/ubuntu/.agents/skills/postgresql-optimization/SKILL.md"
+enabled = false
+
+[[skills.config]]
+path = "/home/ubuntu/.agents/skills/postgresql/SKILL.md"
+enabled = false
+
+[[skills.config]]
+path = "/home/ubuntu/.agents/skills/prisma-expert/SKILL.md"
+enabled = false
+
+[[skills.config]]
+path = "/home/ubuntu/.agents/skills/production-code-audit/SKILL.md"
+enabled = false
+
+[[skills.config]]
+path = "/home/ubuntu/.agents/skills/project-actualizer/SKILL.md"
+enabled = false
+
+[[skills.config]]
+path = "/home/ubuntu/.agents/skills/python-pro/SKILL.md"
+enabled = false
+
+[[skills.config]]
+path = "/home/ubuntu/.agents/skills/react-best-practices/SKILL.md"
+enabled = false
+
+[[skills.config]]
+path = "/home/ubuntu/.agents/skills/react-native-architecture/SKILL.md"
+enabled = false
+
+[[skills.config]]
+path = "/home/ubuntu/.agents/skills/react-patterns/SKILL.md"
+enabled = false
+
+[[skills.config]]
+path = "/home/ubuntu/.agents/skills/redis-patterns/SKILL.md"
+enabled = false
+
+[[skills.config]]
+path = "/home/ubuntu/.agents/skills/remotion-best-practices/SKILL.md"
+enabled = false
+
+[[skills.config]]
+path = "/home/ubuntu/.agents/skills/security-audit/SKILL.md"
+enabled = false
+
+[[skills.config]]
+path = "/home/ubuntu/.agents/skills/server-management/SKILL.md"
+enabled = false
+
+[[skills.config]]
+path = "/home/ubuntu/.agents/skills/slack-bot-builder/SKILL.md"
+enabled = false
+
+[[skills.config]]
+path = "/home/ubuntu/.agents/skills/sql-pro/SKILL.md"
+enabled = false
+
+[[skills.config]]
+path = "/home/ubuntu/.agents/skills/telegram-bot-builder/SKILL.md"
+enabled = false
+
+[[skills.config]]
+path = "/home/ubuntu/.agents/skills/terraform-specialist/SKILL.md"
+enabled = false
+
+[[skills.config]]
+path = "/home/ubuntu/.agents/skills/testing-patterns/SKILL.md"
+enabled = false
+
+[[skills.config]]
+path = "/home/ubuntu/.agents/skills/threejs-skills/SKILL.md"
+enabled = false
+
+[[skills.config]]
+path = "/home/ubuntu/.agents/skills/typescript-expert/SKILL.md"
+enabled = false
+
+[[skills.config]]
+path = "/home/ubuntu/.agents/skills/typescript-pro/SKILL.md"
+enabled = false
+
+[[skills.config]]
+path = "/home/ubuntu/.agents/skills/ui-designer/SKILL.md"
+enabled = false
+
+[[skills.config]]
+path = "/home/ubuntu/.agents/skills/vibe-code-auditor/SKILL.md"
+enabled = false
+
+[[skills.config]]
+path = "/home/ubuntu/.agents/skills/vue-developer/SKILL.md"
+enabled = false
+
+[[skills.config]]
+path = "/home/ubuntu/.agents/skills/web3-developer/SKILL.md"
+enabled = false
+
+[[skills.config]]
+path = "/home/ubuntu/.agents/skills/whatsapp-bot-builder/SKILL.md"
+enabled = false
+
+[[skills.config]]
+path = "/home/ubuntu/.agents/skills/wordpress-developer/SKILL.md"
+enabled = false
+# END ROLE-BASED SKILL WHITELIST EMULATION

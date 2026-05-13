@@ -1,0 +1,33 @@
+name: Feature request
+description: Suggest a new Codex agent, skill, hook, MCP server, or workflow improvement.
+title: "feat: "
+labels: ["enhancement"]
+body:
+  - type: textarea
+    id: use-case
+    attributes:
+      label: Use case
+      description: What Codex workflow should this improve?
+      placeholder: "I want a Codex subagent or skill that..."
+    validations:
+      required: true
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area
+      options:
+        - Codex agents
+        - Codex skills
+        - AGENTS.md instructions
+        - MCP setup
+        - Hooks and safety
+        - Installer
+        - Documentation / SEO
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed solution
+    validations:
+      required: true
