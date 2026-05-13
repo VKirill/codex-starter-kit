@@ -212,11 +212,8 @@ def classify(command: str, workdir: str) -> str | None:
         if program in {"shutdown", "reboot", "halt", "poweroff"}:
             return "Power-management commands are blocked. If restart is needed, first report service/process state and ask the user to perform or explicitly approve the host power action."
 
-        if program == "systemctl" and contains_any(tokens, {"stop", "restart", "reload", "disable", "mask", "kill"}):
-            return "Service mutation is blocked. First run `systemctl status <service> --no-pager`, inspect recent logs with `journalctl -u <service> -n 100 --no-pager`, and test config if applicable (`nginx -t`, `angie -t`, or app-specific check). Then ask for the exact service action."
-
-        if program == "service" and contains_any(tokens, {"stop", "restart", "reload"}):
-            return "Service mutation is blocked. First run the equivalent status/log inspection (`service <name> status` or `systemctl status`, plus recent logs), then ask for the exact service action."
+        if program == "systemctl" and contains_any(tokens, {"disable", "mask", "kill", "daemon-reload"}):
+            return "Persistent or broad systemd mutation is blocked. First inspect service status/logs and unit changes, then ask for the exact systemd action."
 
         if program == "journalctl" and any(token.startswith("--vacuum-") for token in tokens):
             return "Journal vacuum deletes logs. First run `journalctl --disk-usage` and identify the retention target, then ask the user for exact cleanup approval."

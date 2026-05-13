@@ -95,8 +95,8 @@ def dangerous_reason(command: str) -> str | None:
         return "Host power-management commands are intentionally not auto-approved."
     if program == "dd" and any(token.startswith("of=/dev/") or token == "of=/dev" for token in tokens):
         return "Raw device writes are intentionally not auto-approved."
-    if program == "systemctl" and lower_tokens & {"stop", "restart", "reload", "disable", "mask", "kill"}:
-        return "Service mutation requires explicit user approval."
+    if program == "systemctl" and lower_tokens & {"disable", "mask", "kill", "daemon-reload"}:
+        return "Persistent or broad systemd mutation requires explicit user approval."
     if program in {"npm", "pnpm", "yarn", "bun"}:
         if lower_tokens & {"publish", "deploy", "release", "changeset:publish", "release:patch", "release:minor", "release:major"}:
             return "Package publish/deploy/release commands require explicit user approval."
@@ -125,6 +125,46 @@ def dangerous_reason(command: str) -> str | None:
     if program in {"dropdb", "mysqladmin"} and "drop" in lower_tokens:
         return "Database deletion requires explicit user approval."
     return None
+
+
+def is_handoff_service_control(tokens: list[str]) -> bool:
+    if not tokens:
+        return False
+    program = first_program(tokens)
+    lower_tokens = [token.lower() for token in tokens]
+    lower_set = set(lower_tokens)
+
+    if program == "pm2":
+        return len(tokens) >= 2 and tokens[1] in {"start", "stop", "restart", "reload", "gracefulReload", "logs", "status", "list", "describe", "info"}
+
+    if program == "supervisorctl":
+        return len(tokens) >= 2 and tokens[1] in {"status", "start", "stop", "restart", "reread", "update"}
+
+    if program == "systemctl":
+        return bool(lower_set & {"start", "stop", "restart", "reload"}) and not bool(lower_set & {"disable", "mask", "kill", "daemon-reload"})
+
+    if program == "service":
+        return len(tokens) >= 3 and tokens[2] in {"start", "stop", "restart", "reload", "status"}
+
+    if program in {"nginx", "angie"}:
+        return "-s" in tokens and "reload" in lower_set
+
+    if program == "apachectl":
+        return len(tokens) >= 2 and tokens[1] in {"graceful", "restart", "configtest"}
+
+    if program == "caddy":
+        return len(tokens) >= 2 and tokens[1] in {"validate", "reload"}
+
+    if program in {"docker", "podman"}:
+        if len(tokens) >= 2 and tokens[1] in {"start", "stop", "restart"}:
+            return True
+        if "compose" in lower_tokens:
+            if lower_set & {"restart", "start", "stop", "pull", "build"}:
+                return "-v" not in lower_set and "--volumes" not in lower_set
+            if "up" in lower_set and "-d" in lower_set:
+                return "-v" not in lower_set and "--volumes" not in lower_set
+
+    return False
 
 
 def read_allow_prefixes() -> list[list[str]]:
@@ -185,7 +225,7 @@ def main() -> int:
         emit_decision("deny", reason)
         return 0
 
-    if command_matches_allow_prefix(command):
+    if command_matches_allow_prefix(command) or is_handoff_service_control(tokenize(command)):
         emit_decision("allow", "Auto-approved by starter-kit safe command rules for handoff development.")
         return 0
 
