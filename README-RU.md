@@ -41,6 +41,7 @@
 - 100 reusable skills в `skills/*/SKILL.md`
 - глобальные правила работы Codex в `templates/AGENTS.md`
 - безопасный shell hook против опасных команд
+- правила автоматического одобрения безопасных команд в `rules/default.rules`
 - базовый `~/.codex/config.toml` с GitHub и Superpowers plugins
 - публичные docs MCP: Context7, Vue, Nuxt UI, Nuxt
 - рекомендованные локальные MCP-маршруты для Serena, GitNexus, Postgres, Open Design и claude-mem
@@ -64,6 +65,7 @@ https://github.com/VKirill/codex-starter-kit
 - установить кастомных агентов в ~/.codex/agents
 - установить skills в ~/.agents/skills
 - установить safety hooks в ~/.codex/hooks и ~/.codex/hooks.json
+- установить правила одобрения безопасных команд в ~/.codex/rules
 - установить рекомендуемый ~/.codex/config.toml из templates/config.recommended.toml
 - включить GitHub и Superpowers plugin entries через config.toml
 - включить public docs MCP servers для Context7, Vue, Nuxt UI и Nuxt
@@ -145,6 +147,7 @@ python3 scripts/validate-pack.py
 | `~/.agents/skills/` | 100 skills | reusable инструкции для задач и доменов |
 | `~/.codex/hooks/` | safety hook scripts | блокировка частых опасных shell-команд |
 | `~/.codex/hooks.json` | hook config | подключение safety hook к Codex |
+| `~/.codex/rules/` | правила одобрения команд | автоодобрение частых read-only команд для разработки, Linux-диагностики, package metadata и infra inspection |
 | `~/.codex/config.toml` | baseline config | plugins, MCP servers, approvals, docs discovery |
 
 По умолчанию установщик заменяет managed paths и сначала переносит старые файлы в `.bak-*` backups.
@@ -191,6 +194,8 @@ Installer работает в baseline mode: он делает этот starter 
 - agent TOML проверяется после установки
 - `skills.config` paths переписываются под ваш home directory
 - `codex plugin marketplace upgrade` и `codex mcp list` запускаются только если `codex` есть в `PATH`
+- `rules/default.rules` снижает количество запросов подтверждения для read-only команд: package metadata checks, Linux inspection, service status, Docker/Kubernetes/Terraform inspection и GitHub CLI view/list
+- safety hook продолжает блокировать разрушительные или мутирующие варианты: `git reset --hard`, `git clean`, force push, `npm audit fix`, `go env -w`, `journalctl --vacuum-*`, а также mutating `curl`/`wget` requests
 
 Опасный режим:
 
@@ -288,6 +293,7 @@ codex mcp add nuxt-remote --url https://nuxt.com/mcp
 
 ```bash
 ./install.sh --skip-hooks
+./install.sh --skip-rules
 ./install.sh --skip-skills
 ./install.sh --skip-agents
 ./install.sh --skip-config
@@ -302,6 +308,7 @@ codex-starter-kit/
 ├── agents/                     # Custom Codex subagents (*.toml)
 ├── skills/                     # Skills copied to ~/.agents/skills
 ├── hooks/                      # Shell safety hook and hook template
+├── rules/                      # Codex command approval rules
 ├── templates/
 │   ├── AGENTS.md               # Global project-agnostic Codex instructions
 │   └── config.recommended.toml # Baseline ~/.codex/config.toml

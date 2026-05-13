@@ -41,6 +41,7 @@ It includes:
 - 100 reusable skills in `skills/*/SKILL.md`
 - global Codex working rules in `templates/AGENTS.md`
 - a shell safety hook for risky commands
+- default command approval rules in `rules/default.rules`
 - a baseline `~/.codex/config.toml` with GitHub and Superpowers plugins
 - public docs MCP servers: Context7, Vue, Nuxt UI, and Nuxt
 - recommended local MCP routes for Serena, GitNexus, Postgres, Open Design, and claude-mem
@@ -64,6 +65,7 @@ Goal:
 - install custom agents into ~/.codex/agents
 - install skills into ~/.agents/skills
 - install safety hooks into ~/.codex/hooks and ~/.codex/hooks.json
+- install safe command approval rules into ~/.codex/rules
 - install the recommended ~/.codex/config.toml from templates/config.recommended.toml
 - enable GitHub and Superpowers plugin entries through config.toml
 - enable public docs MCP servers for Context7, Vue, Nuxt UI, and Nuxt
@@ -145,6 +147,7 @@ Restart Codex after installation. Global instructions, agents, skills, hooks, an
 | `~/.agents/skills/` | 100 skills | reusable instructions for tasks and domains |
 | `~/.codex/hooks/` | safety hook scripts | guards against common risky shell commands |
 | `~/.codex/hooks.json` | hook config | connects the safety hook to Codex |
+| `~/.codex/rules/` | command approval rules | auto-approves common read-only development, Linux, package metadata, and diagnostics commands |
 | `~/.codex/config.toml` | baseline config | plugins, MCP servers, approvals, docs discovery |
 
 By default, the installer replaces managed paths only after moving existing files to timestamped `.bak-*` backups.
@@ -191,6 +194,8 @@ Default safeguards:
 - agent TOML files are validated after install
 - `skills.config` paths are rewritten for your home directory
 - `codex plugin marketplace upgrade` and `codex mcp list` run only when `codex` is available in `PATH`
+- `rules/default.rules` reduces routine approval prompts for read-only commands such as package metadata checks, Linux inspection commands, service status checks, Docker/Kubernetes/Terraform read-only inspection, and GitHub CLI view/list commands
+- the safety hook still blocks destructive or mutating variants such as `git reset --hard`, `git clean`, force pushes, `npm audit fix`, `go env -w`, `journalctl --vacuum-*`, and mutating `curl`/`wget` requests
 
 Dangerous mode:
 
@@ -288,6 +293,7 @@ Skip parts of the install:
 
 ```bash
 ./install.sh --skip-hooks
+./install.sh --skip-rules
 ./install.sh --skip-skills
 ./install.sh --skip-agents
 ./install.sh --skip-config
@@ -302,6 +308,7 @@ codex-starter-kit/
 ├── agents/                     # Custom Codex subagents (*.toml)
 ├── skills/                     # Skills copied to ~/.agents/skills
 ├── hooks/                      # Shell safety hook and hook template
+├── rules/                      # Codex command approval rules
 ├── templates/
 │   ├── AGENTS.md               # Global project-agnostic Codex instructions
 │   └── config.recommended.toml # Baseline ~/.codex/config.toml

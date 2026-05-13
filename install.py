@@ -95,6 +95,14 @@ def install_hooks(*, dry_run: bool, backup: bool, codex_home: Path) -> None:
     install_text(rendered, codex_home / "hooks.json", dry_run=dry_run, backup=backup, label="hooks config")
 
 
+def install_rules(*, dry_run: bool, backup: bool, codex_home: Path) -> None:
+    rules_dir = codex_home / "rules"
+    backup_or_remove(rules_dir, dry_run=dry_run, backup=backup)
+    print(f"write command approval rules -> {rules_dir}")
+    if not dry_run:
+        shutil.copytree(REPO_ROOT / "rules", rules_dir)
+
+
 def install_config(*, dry_run: bool, backup: bool, codex_home: Path) -> None:
     snippet = (REPO_ROOT / "templates" / "config.recommended.toml").read_text(encoding="utf-8")
     install_text(snippet, codex_home / "config.toml", dry_run=dry_run, backup=backup, label="baseline config")
@@ -161,6 +169,7 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--skip-agents", action="store_true")
     parser.add_argument("--skip-skills", action="store_true")
     parser.add_argument("--skip-hooks", action="store_true")
+    parser.add_argument("--skip-rules", action="store_true")
     parser.add_argument("--skip-global-agents-md", action="store_true")
     parser.add_argument("--validate-only", action="store_true")
     args = parser.parse_args(argv)
@@ -185,6 +194,8 @@ def main(argv: list[str] | None = None) -> int:
         install_skills(dry_run=args.dry_run, backup=backup, skills_home=skills_home)
     if not args.skip_hooks:
         install_hooks(dry_run=args.dry_run, backup=backup, codex_home=codex_home)
+    if not args.skip_rules:
+        install_rules(dry_run=args.dry_run, backup=backup, codex_home=codex_home)
     if not args.skip_config:
         install_config(dry_run=args.dry_run, backup=backup, codex_home=codex_home)
     if not args.skip_runtime_refresh:

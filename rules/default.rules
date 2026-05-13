@@ -1,0 +1,340 @@
+prefix_rule(
+    pattern = ["rm"],
+    decision = "forbidden",
+    justification = "Permanent deletion with rm is blocked. Use: ls -ld <path> && gio trash <path> && test ! -e <path>.",
+    match = ["rm -rf /", "rm -rf node_modules", "rm important.txt"],
+)
+
+prefix_rule(
+    pattern = ["sudo"],
+    decision = "forbidden",
+    justification = "Privilege escalation is blocked by default. Ask the user for an explicit one-off elevated command if truly needed.",
+    match = ["sudo apt install curl", "sudo rm -rf /"],
+)
+
+prefix_rule(
+    pattern = ["dd"],
+    decision = "forbidden",
+    justification = "Raw disk writes can destroy data. Use a safer file-level tool or ask the user for an exact approved disk command.",
+    match = ["dd if=/dev/zero of=/dev/sda"],
+)
+
+prefix_rule(
+    pattern = ["mkfs"],
+    decision = "forbidden",
+    justification = "Formatting filesystems is blocked. This must be performed manually by the user.",
+    match = ["mkfs /dev/sda1"],
+)
+
+prefix_rule(
+    pattern = ["shred"],
+    decision = "forbidden",
+    justification = "Secure deletion is blocked. Use gio trash for recoverable deletion, or ask for explicit permanent deletion.",
+    match = ["shred -u secrets.txt"],
+)
+
+prefix_rule(
+    pattern = ["reboot"],
+    decision = "forbidden",
+    justification = "System reboot is blocked. The user must reboot the host manually.",
+    match = ["reboot"],
+)
+
+prefix_rule(
+    pattern = ["shutdown"],
+    decision = "forbidden",
+    justification = "System shutdown is blocked. The user must shut down the host manually.",
+    match = ["shutdown now"],
+)
+
+prefix_rule(pattern=["systemctl", "start"], decision="prompt", justification="Starting services can affect the host. Inspect status/logs first and ask for exact approval.")
+prefix_rule(pattern=["systemctl", "stop"], decision="prompt", justification="Stopping services can cause downtime. Inspect status/logs first and ask for exact approval.")
+prefix_rule(pattern=["systemctl", "restart"], decision="prompt", justification="Restarting services can cause downtime. Inspect status/logs first and ask for exact approval.")
+prefix_rule(pattern=["systemctl", "reload"], decision="prompt", justification="Reloading services changes runtime behavior. Test config first and ask for exact approval.")
+prefix_rule(pattern=["systemctl", "enable"], decision="prompt", justification="Changing boot-time service state affects the host. Ask for exact approval.")
+prefix_rule(pattern=["systemctl", "disable"], decision="prompt", justification="Changing boot-time service state affects the host. Ask for exact approval.")
+prefix_rule(pattern=["systemctl", "mask"], decision="prompt", justification="Masking services can break host behavior. Ask for exact approval.")
+prefix_rule(pattern=["systemctl", "kill"], decision="prompt", justification="Killing services can cause data loss or downtime. Ask for exact approval.")
+prefix_rule(pattern=["systemctl", "daemon-reload"], decision="prompt", justification="Reloading systemd units changes service manager state. Ask for exact approval.")
+
+prefix_rule(
+    pattern = ["chmod"],
+    decision = "prompt",
+    justification = "Permission changes can expose or break files. Ask for the exact target and least-privilege mode.",
+    match = ["chmod -R 777 .", "chmod 600 .env"],
+)
+
+prefix_rule(
+    pattern = ["chown"],
+    decision = "prompt",
+    justification = "Ownership changes can break workspace or host permissions. Ask for the exact target and owner.",
+    match = ["chown -R ubuntu:ubuntu ."],
+)
+
+prefix_rule(
+    pattern = ["git", "reset"],
+    decision = "allow",
+    justification = "Git commands are globally approved by user preference. The pre-tool safety hook still blocks destructive reset forms such as git reset --hard.",
+    match = ["git reset --hard", "git reset --hard HEAD"],
+)
+
+prefix_rule(
+    pattern = ["git", "clean"],
+    decision = "allow",
+    justification = "Git commands are globally approved by user preference. The pre-tool safety hook still blocks git clean because it deletes untracked files.",
+    match = ["git clean -fd", "git clean -fdx"],
+)
+
+prefix_rule(
+    pattern = ["git", "push"],
+    decision = "allow",
+    justification = "Git commands are globally approved by user preference. The pre-tool safety hook still blocks force push unless explicitly handled.",
+    match = ["git push --force", "git push -f origin main"],
+)
+
+prefix_rule(
+    pattern = ["wipefs"],
+    decision = "forbidden",
+    justification = "Filesystem signature wiping is blocked. This must be performed manually by the user.",
+    match = ["wipefs -a /dev/sda"],
+)
+
+prefix_rule(
+    pattern = ["docker", "system", "prune"],
+    decision = "prompt",
+    justification = "Docker prune can delete containers, images, networks, and cache. Inspect usage first and ask for exact cleanup approval.",
+    match = ["docker system prune -af"],
+)
+prefix_rule(pattern=["git", "commit"], decision="allow")
+prefix_rule(pattern=["git", "rev-parse"], decision="allow")
+prefix_rule(pattern=["git", "fetch"], decision="allow")
+prefix_rule(pattern=["git", "add"], decision="allow")
+prefix_rule(pattern=["git"], decision="allow")
+prefix_rule(pattern=["npm", "view"], decision="allow")
+prefix_rule(pattern=["npm", "info"], decision="allow")
+prefix_rule(pattern=["npm", "search"], decision="allow")
+prefix_rule(pattern=["npm", "ping"], decision="allow")
+prefix_rule(pattern=["npm", "config", "get"], decision="allow")
+prefix_rule(pattern=["npm", "ls"], decision="allow")
+prefix_rule(pattern=["npm", "list"], decision="allow")
+prefix_rule(pattern=["npm", "outdated"], decision="allow")
+prefix_rule(pattern=["npm", "audit"], decision="allow")
+prefix_rule(pattern=["pnpm", "view"], decision="allow")
+prefix_rule(pattern=["pnpm", "info"], decision="allow")
+prefix_rule(pattern=["pnpm", "search"], decision="allow")
+prefix_rule(pattern=["pnpm", "list"], decision="allow")
+prefix_rule(pattern=["pnpm", "why"], decision="allow")
+prefix_rule(pattern=["pnpm", "outdated"], decision="allow")
+prefix_rule(pattern=["pnpm", "audit"], decision="allow")
+prefix_rule(pattern=["pnpm", "config", "get"], decision="allow")
+prefix_rule(pattern=["yarn", "info"], decision="allow")
+prefix_rule(pattern=["yarn", "list"], decision="allow")
+prefix_rule(pattern=["yarn", "why"], decision="allow")
+prefix_rule(pattern=["yarn", "outdated"], decision="allow")
+prefix_rule(pattern=["yarn", "audit"], decision="allow")
+prefix_rule(pattern=["node", "--version"], decision="allow")
+prefix_rule(pattern=["npm", "--version"], decision="allow")
+prefix_rule(pattern=["pnpm", "--version"], decision="allow")
+prefix_rule(pattern=["yarn", "--version"], decision="allow")
+prefix_rule(pattern=["corepack", "--version"], decision="allow")
+prefix_rule(pattern=["bun", "--version"], decision="allow")
+prefix_rule(pattern=["deno", "--version"], decision="allow")
+prefix_rule(pattern=["deno", "info"], decision="allow")
+prefix_rule(pattern=["python", "--version"], decision="allow")
+prefix_rule(pattern=["python3", "--version"], decision="allow")
+prefix_rule(pattern=["pip", "--version"], decision="allow")
+prefix_rule(pattern=["pip3", "--version"], decision="allow")
+prefix_rule(pattern=["pip", "list"], decision="allow")
+prefix_rule(pattern=["pip3", "list"], decision="allow")
+prefix_rule(pattern=["pip", "show"], decision="allow")
+prefix_rule(pattern=["pip3", "show"], decision="allow")
+prefix_rule(pattern=["pip", "check"], decision="allow")
+prefix_rule(pattern=["pip3", "check"], decision="allow")
+prefix_rule(pattern=["pip", "freeze"], decision="allow")
+prefix_rule(pattern=["pip3", "freeze"], decision="allow")
+prefix_rule(pattern=["pip", "index", "versions"], decision="allow")
+prefix_rule(pattern=["pip3", "index", "versions"], decision="allow")
+prefix_rule(pattern=["uv", "--version"], decision="allow")
+prefix_rule(pattern=["uv", "pip", "list"], decision="allow")
+prefix_rule(pattern=["uv", "pip", "show"], decision="allow")
+prefix_rule(pattern=["uv", "pip", "check"], decision="allow")
+prefix_rule(pattern=["uv", "tree"], decision="allow")
+prefix_rule(pattern=["uv", "python", "list"], decision="allow")
+prefix_rule(pattern=["uv", "tool", "list"], decision="allow")
+prefix_rule(pattern=["uv", "lock", "--check"], decision="allow")
+prefix_rule(pattern=["go", "version"], decision="allow")
+prefix_rule(pattern=["go", "env"], decision="allow")
+prefix_rule(pattern=["go", "list"], decision="allow")
+prefix_rule(pattern=["go", "mod", "graph"], decision="allow")
+prefix_rule(pattern=["go", "mod", "why"], decision="allow")
+prefix_rule(pattern=["go", "mod", "verify"], decision="allow")
+prefix_rule(pattern=["rustc", "--version"], decision="allow")
+prefix_rule(pattern=["cargo", "--version"], decision="allow")
+prefix_rule(pattern=["cargo", "metadata"], decision="allow")
+prefix_rule(pattern=["cargo", "tree"], decision="allow")
+prefix_rule(pattern=["cargo", "search"], decision="allow")
+prefix_rule(pattern=["cargo", "info"], decision="allow")
+prefix_rule(pattern=["cargo", "pkgid"], decision="allow")
+prefix_rule(pattern=["cargo", "locate-project"], decision="allow")
+prefix_rule(pattern=["java", "-version"], decision="allow")
+prefix_rule(pattern=["javac", "-version"], decision="allow")
+prefix_rule(pattern=["mvn", "--version"], decision="allow")
+prefix_rule(pattern=["gradle", "--version"], decision="allow")
+prefix_rule(pattern=["dotnet", "--version"], decision="allow")
+prefix_rule(pattern=["dotnet", "--info"], decision="allow")
+prefix_rule(pattern=["dotnet", "--list-sdks"], decision="allow")
+prefix_rule(pattern=["dotnet", "--list-runtimes"], decision="allow")
+prefix_rule(pattern=["dotnet", "list"], decision="allow")
+prefix_rule(pattern=["ruby", "--version"], decision="allow")
+prefix_rule(pattern=["gem", "--version"], decision="allow")
+prefix_rule(pattern=["gem", "list"], decision="allow")
+prefix_rule(pattern=["gem", "info"], decision="allow")
+prefix_rule(pattern=["bundle", "--version"], decision="allow")
+prefix_rule(pattern=["bundle", "list"], decision="allow")
+prefix_rule(pattern=["bundle", "outdated"], decision="allow")
+prefix_rule(pattern=["bundle", "check"], decision="allow")
+prefix_rule(pattern=["php", "-v"], decision="allow")
+prefix_rule(pattern=["composer", "--version"], decision="allow")
+prefix_rule(pattern=["composer", "show"], decision="allow")
+prefix_rule(pattern=["composer", "outdated"], decision="allow")
+prefix_rule(pattern=["composer", "validate"], decision="allow")
+prefix_rule(pattern=["composer", "audit"], decision="allow")
+prefix_rule(pattern=["composer", "diagnose"], decision="allow")
+prefix_rule(pattern=["swift", "--version"], decision="allow")
+prefix_rule(pattern=["swift", "package", "describe"], decision="allow")
+prefix_rule(pattern=["swift", "package", "dump-package"], decision="allow")
+prefix_rule(pattern=["swift", "package", "show-dependencies"], decision="allow")
+prefix_rule(pattern=["dart", "--version"], decision="allow")
+prefix_rule(pattern=["dart", "pub", "outdated"], decision="allow")
+prefix_rule(pattern=["dart", "pub", "deps"], decision="allow")
+prefix_rule(pattern=["flutter", "--version"], decision="allow")
+prefix_rule(pattern=["flutter", "doctor"], decision="allow")
+prefix_rule(pattern=["flutter", "pub", "outdated"], decision="allow")
+prefix_rule(pattern=["flutter", "pub", "deps"], decision="allow")
+prefix_rule(pattern=["pwd"], decision="allow")
+prefix_rule(pattern=["ls"], decision="allow")
+prefix_rule(pattern=["tree"], decision="allow")
+prefix_rule(pattern=["stat"], decision="allow")
+prefix_rule(pattern=["file"], decision="allow")
+prefix_rule(pattern=["wc"], decision="allow")
+prefix_rule(pattern=["head"], decision="allow")
+prefix_rule(pattern=["tail"], decision="allow")
+prefix_rule(pattern=["cat"], decision="allow")
+prefix_rule(pattern=["nl"], decision="allow")
+prefix_rule(pattern=["sed", "-n"], decision="allow")
+prefix_rule(pattern=["grep"], decision="allow")
+prefix_rule(pattern=["rg"], decision="allow")
+prefix_rule(pattern=["jq"], decision="allow")
+prefix_rule(pattern=["cut"], decision="allow")
+prefix_rule(pattern=["tr"], decision="allow")
+prefix_rule(pattern=["uniq"], decision="allow")
+prefix_rule(pattern=["diff"], decision="allow")
+prefix_rule(pattern=["cmp"], decision="allow")
+prefix_rule(pattern=["realpath"], decision="allow")
+prefix_rule(pattern=["readlink"], decision="allow")
+prefix_rule(pattern=["basename"], decision="allow")
+prefix_rule(pattern=["dirname"], decision="allow")
+prefix_rule(pattern=["du"], decision="allow")
+prefix_rule(pattern=["df"], decision="allow")
+prefix_rule(pattern=["date"], decision="allow")
+prefix_rule(pattern=["whoami"], decision="allow")
+prefix_rule(pattern=["id"], decision="allow")
+prefix_rule(pattern=["uname"], decision="allow")
+prefix_rule(pattern=["hostname"], decision="allow")
+prefix_rule(pattern=["printenv"], decision="allow")
+prefix_rule(pattern=["which"], decision="allow")
+prefix_rule(pattern=["whereis"], decision="allow")
+prefix_rule(pattern=["ps"], decision="allow")
+prefix_rule(pattern=["pgrep"], decision="allow")
+prefix_rule(pattern=["lsof"], decision="allow")
+prefix_rule(pattern=["ss"], decision="allow")
+prefix_rule(pattern=["netstat"], decision="allow")
+prefix_rule(pattern=["free"], decision="allow")
+prefix_rule(pattern=["uptime"], decision="allow")
+prefix_rule(pattern=["top", "-bn1"], decision="allow")
+prefix_rule(pattern=["vmstat"], decision="allow")
+prefix_rule(pattern=["iostat"], decision="allow")
+prefix_rule(pattern=["lsblk"], decision="allow")
+prefix_rule(pattern=["blkid"], decision="allow")
+prefix_rule(pattern=["ip", "addr", "show"], decision="allow")
+prefix_rule(pattern=["ip", "route", "show"], decision="allow")
+prefix_rule(pattern=["ip", "link", "show"], decision="allow")
+prefix_rule(pattern=["systemctl", "status"], decision="allow")
+prefix_rule(pattern=["systemctl", "is-active"], decision="allow")
+prefix_rule(pattern=["systemctl", "is-enabled"], decision="allow")
+prefix_rule(pattern=["systemctl", "list-units"], decision="allow")
+prefix_rule(pattern=["systemctl", "list-timers"], decision="allow")
+prefix_rule(pattern=["systemctl", "show"], decision="allow")
+prefix_rule(pattern=["systemctl", "cat"], decision="allow")
+prefix_rule(pattern=["journalctl", "-u"], decision="allow")
+prefix_rule(pattern=["pm2", "status"], decision="allow")
+prefix_rule(pattern=["pm2", "list"], decision="allow")
+prefix_rule(pattern=["pm2", "jlist"], decision="allow")
+prefix_rule(pattern=["pm2", "prettylist"], decision="allow")
+prefix_rule(pattern=["pm2", "describe"], decision="allow")
+prefix_rule(pattern=["pm2", "info"], decision="allow")
+prefix_rule(pattern=["pm2", "logs"], decision="allow")
+prefix_rule(pattern=["nginx", "-t"], decision="allow")
+prefix_rule(pattern=["angie", "-t"], decision="allow")
+prefix_rule(pattern=["apachectl", "configtest"], decision="allow")
+prefix_rule(pattern=["docker", "ps"], decision="allow")
+prefix_rule(pattern=["docker", "logs"], decision="allow")
+prefix_rule(pattern=["docker", "inspect"], decision="allow")
+prefix_rule(pattern=["docker", "images"], decision="allow")
+prefix_rule(pattern=["docker", "version"], decision="allow")
+prefix_rule(pattern=["docker", "info"], decision="allow")
+prefix_rule(pattern=["docker", "system", "df"], decision="allow")
+prefix_rule(pattern=["docker", "compose", "ps"], decision="allow")
+prefix_rule(pattern=["docker", "compose", "logs"], decision="allow")
+prefix_rule(pattern=["docker", "compose", "config"], decision="allow")
+prefix_rule(pattern=["docker", "compose", "ls"], decision="allow")
+prefix_rule(pattern=["kubectl", "version"], decision="allow")
+prefix_rule(pattern=["kubectl", "get"], decision="allow")
+prefix_rule(pattern=["kubectl", "describe"], decision="allow")
+prefix_rule(pattern=["kubectl", "logs"], decision="allow")
+prefix_rule(pattern=["kubectl", "config", "current-context"], decision="allow")
+prefix_rule(pattern=["kubectl", "config", "get-contexts"], decision="allow")
+prefix_rule(pattern=["helm", "version"], decision="allow")
+prefix_rule(pattern=["helm", "list"], decision="allow")
+prefix_rule(pattern=["helm", "status"], decision="allow")
+prefix_rule(pattern=["helm", "history"], decision="allow")
+prefix_rule(pattern=["helm", "get"], decision="allow")
+prefix_rule(pattern=["helm", "repo", "list"], decision="allow")
+prefix_rule(pattern=["helm", "search"], decision="allow")
+prefix_rule(pattern=["terraform", "version"], decision="allow")
+prefix_rule(pattern=["terraform", "validate"], decision="allow")
+prefix_rule(pattern=["terraform", "fmt", "-check"], decision="allow")
+prefix_rule(pattern=["terraform", "plan"], decision="allow")
+prefix_rule(pattern=["terraform", "show"], decision="allow")
+prefix_rule(pattern=["terraform", "state", "list"], decision="allow")
+prefix_rule(pattern=["terraform", "state", "show"], decision="allow")
+prefix_rule(pattern=["terraform", "providers"], decision="allow")
+prefix_rule(pattern=["terraform", "workspace", "show"], decision="allow")
+prefix_rule(pattern=["terraform", "workspace", "list"], decision="allow")
+prefix_rule(pattern=["gh", "auth", "status"], decision="allow")
+prefix_rule(pattern=["gh", "repo", "view"], decision="allow")
+prefix_rule(pattern=["gh", "repo", "list"], decision="allow")
+prefix_rule(pattern=["gh", "pr", "view"], decision="allow")
+prefix_rule(pattern=["gh", "pr", "list"], decision="allow")
+prefix_rule(pattern=["gh", "pr", "checks"], decision="allow")
+prefix_rule(pattern=["gh", "pr", "diff"], decision="allow")
+prefix_rule(pattern=["gh", "issue", "view"], decision="allow")
+prefix_rule(pattern=["gh", "issue", "list"], decision="allow")
+prefix_rule(pattern=["gh", "run", "list"], decision="allow")
+prefix_rule(pattern=["gh", "run", "view"], decision="allow")
+prefix_rule(pattern=["curl", "-I"], decision="allow")
+prefix_rule(pattern=["curl", "--head"], decision="allow")
+prefix_rule(pattern=["wget", "--spider"], decision="allow")
+prefix_rule(pattern=["dig"], decision="allow")
+prefix_rule(pattern=["nslookup"], decision="allow")
+prefix_rule(pattern=["host"], decision="allow")
+prefix_rule(pattern=["ping"], decision="allow")
+prefix_rule(pattern=["traceroute"], decision="allow")
+prefix_rule(pattern=["pg_isready"], decision="allow")
+prefix_rule(pattern=["psql", "--version"], decision="allow")
+prefix_rule(pattern=["redis-cli", "ping"], decision="allow")
+prefix_rule(pattern=["redis-cli", "info"], decision="allow")
+prefix_rule(pattern=["redis-cli", "dbsize"], decision="allow")
+prefix_rule(pattern=["mysqladmin", "ping"], decision="allow")
+prefix_rule(pattern=["mysqladmin", "status"], decision="allow")
+prefix_rule(pattern=["sqlite3", "--version"], decision="allow")

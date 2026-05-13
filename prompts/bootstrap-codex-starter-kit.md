@@ -14,6 +14,7 @@ Goal:
 - install custom agents into ~/.codex/agents
 - install skills into ~/.agents/skills
 - install safety hooks into ~/.codex/hooks and ~/.codex/hooks.json
+- install safe command approval rules into ~/.codex/rules
 - install the recommended ~/.codex/config.toml from templates/config.recommended.toml
 - enable GitHub and Superpowers plugin entries through config.toml
 - enable public docs MCP servers for Context7, Vue, Nuxt UI, and Nuxt

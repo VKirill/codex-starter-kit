@@ -135,6 +135,25 @@ def classify(command: str) -> str | None:
         if program == "service" and contains_any(tokens, {"stop", "restart", "reload"}):
             return "Service mutation is blocked. Use status/log inspection first, then ask the user for the exact service action."
 
+        if program == "journalctl" and any(token.startswith("--vacuum-") for token in tokens):
+            return "Journal vacuum deletes logs. Inspect journal size first and ask the user for exact cleanup approval."
+
+        if program == "go" and len(tokens) >= 3 and tokens[1] == "env" and "-w" in tokens:
+            return "go env -w mutates Go configuration. Inspect go env first and ask before changing persistent Go settings."
+
+        if program in {"npm", "pnpm", "yarn"} and "audit" in tokens and ("fix" in tokens or "--fix" in tokens):
+            return "Package-manager audit fix mutates dependencies. Run audit first, then ask before applying dependency changes."
+
+        if program == "curl":
+            unsafe_methods = {"POST", "PUT", "PATCH", "DELETE"}
+            upper_tokens = {token.upper() for token in tokens}
+            sends_body = any(token in {"-d", "--data", "--data-raw", "--data-binary", "--form", "-F"} or token.startswith("--data") for token in tokens)
+            if upper_tokens & unsafe_methods or sends_body:
+                return "curl with mutating HTTP methods or request bodies is not auto-approved. Use read-only HEAD/GET checks first, then ask."
+
+        if program == "wget" and any(token.startswith("--post-") or token in {"--method=POST", "--method=PUT", "--method=PATCH", "--method=DELETE"} for token in tokens):
+            return "wget with mutating HTTP methods or request bodies is not auto-approved. Use read-only checks first, then ask."
+
         if program == "chmod":
             broad_path = any(token in {"/", "/home", "/home/ubuntu", ".", ".."} for token in tokens)
             unsafe_mode = any(token in {"777", "0777", "a+rwx", "-R"} for token in tokens)
