@@ -43,6 +43,7 @@ It includes:
 - a shell safety hook for risky commands
 - a baseline `~/.codex/config.toml` with GitHub and Superpowers plugins
 - public docs MCP servers: Context7, Vue, Nuxt UI, and Nuxt
+- recommended local MCP routes for Serena, GitNexus, Postgres, Open Design, and claude-mem
 - an installer with `--dry-run`, backups, runtime refresh, and validation
 
 The point is simple: you do not rebuild a Codex workflow from scratch. Install the baseline, verify it, then keep project-specific rules in each repository's local `AGENTS.md`.
@@ -66,6 +67,8 @@ Goal:
 - install the recommended ~/.codex/config.toml from templates/config.recommended.toml
 - enable GitHub and Superpowers plugin entries through config.toml
 - enable public docs MCP servers for Context7, Vue, Nuxt UI, and Nuxt
+- check and document recommended local MCP/plugin routes for Serena, GitNexus, Postgres, Open Design, and claude-mem
+- include GitHub/source links for every enabled plugin and recommended MCP/plugin route
 - preserve old files with timestamped .bak-* backups
 
 Work step by step:
@@ -80,12 +83,15 @@ Work step by step:
 7. If the dry run looks safe, run the install with backups:
    ./install.sh
 8. Verify that ~/.codex/config.toml contains GitHub and Superpowers plugins, plus MCP servers context7, vue-docs, nuxt-ui-remote, and nuxt-remote.
-9. If the codex command is available, run:
+9. Report that Serena, GitNexus, Postgres, Open Design, and claude-mem are recommended local/plugin routes for the full starter-kit workflow.
+10. For each enabled plugin and recommended MCP/plugin route, show its GitHub/source link from README.md or templates/config.recommended.toml.
+11. If any recommended local MCP/plugin is already installed and safe to verify, check it with `codex mcp list` or its own status command. Do not write private ports, local paths, bearer tokens, or database credentials into the public starter-kit files.
+12. If the codex command is available, run:
    codex plugin marketplace upgrade
    codex mcp list
-10. Validate installed agents:
+13. Validate installed agents:
    ./install.sh --validate-only
-11. At the end, briefly summarize what changed, where backups were written, and that Codex must be restarted.
+14. At the end, briefly summarize what changed, where backups were written, which recommended MCP/plugin routes are active or missing, and that Codex must be restarted.
 
 Safety rules:
 - do not delete ~/.codex, ~/.agents, or existing agents/skills without backups
@@ -210,13 +216,43 @@ The installer writes it here:
 
 The config enables:
 
-- GitHub plugin entry
-- Superpowers plugin entry
+- GitHub plugin entry: https://github.com/openai/plugins/tree/main/plugins/github
+- Superpowers plugin entry: https://github.com/openai/plugins/tree/main/plugins/superpowers
 - project docs discovery defaults
 - agent concurrency defaults
 - public remote docs MCP servers for Context7, Vue, Nuxt UI, and Nuxt
 
-Local code-intelligence MCP servers such as Serena, GitNexus, and Postgres are left as commented examples. They depend on your machine, tokens, and local daemons.
+## MCP Coverage
+
+The starter kit separates portable MCP defaults from recommended local integrations. The local entries are part of the recommended full setup, but they stay commented in the public baseline because they need local daemons, paths, ports, bearer tokens, plugin state, or database credentials.
+
+| MCP or plugin | Status in this repo | Source | Why |
+| --- | --- | --- | --- |
+| `github@openai-curated` | enabled in `templates/config.recommended.toml` | https://github.com/openai/plugins/tree/main/plugins/github | GitHub repository, issues, pull request, and review workflow support |
+| `superpowers@openai-curated` | enabled in `templates/config.recommended.toml` | https://github.com/openai/plugins/tree/main/plugins/superpowers | planning, TDD, debugging, verification, and development workflow skills |
+| `context7` | enabled in `templates/config.recommended.toml` | https://github.com/upstash/context7 | public docs server, no local daemon required |
+| `vue-docs` | enabled in `templates/config.recommended.toml` | https://github.com/joelbarmettlerUZH/vue-mcp | public Vue ecosystem docs |
+| `nuxt-ui-remote` | enabled in `templates/config.recommended.toml` | https://github.com/nuxt/ui | public Nuxt UI docs |
+| `nuxt-remote` | enabled in `templates/config.recommended.toml` | https://github.com/nuxt/nuxt | public Nuxt docs |
+| `serena` | recommended local MCP; commented example in `templates/config.recommended.toml`; referenced by `templates/AGENTS.md` and agents | https://github.com/oraios/serena | semantic code navigation, references, and targeted edits |
+| `gitnexus` | recommended local MCP; commented example in `templates/config.recommended.toml`; referenced by `templates/AGENTS.md` and many agents | https://github.com/abhigyanpatwari/GitNexus | code graph, impact analysis, route maps, execution flows, and repo context |
+| `postgres` | recommended local MCP; commented example in `templates/config.recommended.toml`; referenced by `templates/AGENTS.md` and data/API agents | https://github.com/modelcontextprotocol/servers | local database inspection; should stay read-only unless explicitly approved |
+| `open-design` | recommended local MCP for design workspaces | https://github.com/nexu-io/open-design | local design artifacts, design-system context, and visual handoff |
+| `claude-mem` | recommended local plugin/runtime for memory continuity | https://github.com/thedotmack/claude-mem | durable cross-session memory under `~/.claude-mem` and `mcp-search` tools |
+
+`templates/AGENTS.md` intentionally tells Codex to use Serena, GitNexus, Context7, framework docs MCP, Open Design MCP, claude-mem, and database MCP when available. The baseline config enables only the portable public docs servers by default; recommended local integrations must be enabled after their daemons/plugins are installed.
+
+For claude-mem, use its own installer/runtime flow, for example:
+
+```bash
+npx claude-mem@latest install
+```
+
+After setup, restart Codex and check what the runtime exposes:
+
+```bash
+codex mcp list
+```
 
 Manual runtime checks:
 

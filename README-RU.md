@@ -43,6 +43,7 @@
 - безопасный shell hook против опасных команд
 - базовый `~/.codex/config.toml` с GitHub и Superpowers plugins
 - публичные docs MCP: Context7, Vue, Nuxt UI, Nuxt
+- рекомендованные локальные MCP-маршруты для Serena, GitNexus, Postgres, Open Design и claude-mem
 - установщик с `--dry-run`, backup-режимом и валидацией
 
 Главная идея простая: вы не собираете рабочий Codex-процесс с нуля. Вы ставите базу, проверяете ее и дальше настраиваете под свои проекты через локальные `AGENTS.md`.
@@ -66,6 +67,8 @@ https://github.com/VKirill/codex-starter-kit
 - установить рекомендуемый ~/.codex/config.toml из templates/config.recommended.toml
 - включить GitHub и Superpowers plugin entries через config.toml
 - включить public docs MCP servers для Context7, Vue, Nuxt UI и Nuxt
+- проверить и описать recommended local MCP/plugin routes для Serena, GitNexus, Postgres, Open Design и claude-mem
+- добавить GitHub/source links для каждого включенного plugin и recommended MCP/plugin route
 - сохранить старые файлы через timestamped .bak-* backups
 
 Работай пошагово:
@@ -80,12 +83,15 @@ https://github.com/VKirill/codex-starter-kit
 7. Если dry run выглядит безопасно, запусти установку с backup-режимом:
    ./install.sh
 8. Проверь, что ~/.codex/config.toml содержит GitHub и Superpowers plugins, а также MCP servers context7, vue-docs, nuxt-ui-remote и nuxt-remote.
-9. Если команда codex доступна, запусти:
+9. Сообщи, что Serena, GitNexus, Postgres, Open Design и claude-mem — recommended local/plugin routes для полноценного starter-kit workflow.
+10. Для каждого включенного plugin и recommended MCP/plugin route покажи GitHub/source link из README.md или templates/config.recommended.toml.
+11. Если recommended local MCP/plugin уже установлен и его безопасно проверить, проверь через `codex mcp list` или его status-команду. Не записывай private ports, local paths, bearer tokens или database credentials в публичные файлы starter kit.
+12. Если команда codex доступна, запусти:
    codex plugin marketplace upgrade
    codex mcp list
-10. Проверь установленных агентов:
+13. Проверь установленных агентов:
    ./install.sh --validate-only
-11. В конце кратко напиши, что изменилось, где лежат backups и что нужно перезапустить Codex.
+14. В конце кратко напиши, что изменилось, где лежат backups, какие recommended MCP/plugin routes активны или отсутствуют, и что нужно перезапустить Codex.
 
 Правила безопасности:
 - не удаляй ~/.codex, ~/.agents или существующие agents/skills без backup
@@ -210,13 +216,43 @@ templates/config.recommended.toml
 
 В config включены:
 
-- GitHub plugin entry
-- Superpowers plugin entry
+- GitHub plugin entry: https://github.com/openai/plugins/tree/main/plugins/github
+- Superpowers plugin entry: https://github.com/openai/plugins/tree/main/plugins/superpowers
 - project docs discovery defaults
 - agent concurrency defaults
 - public remote docs MCP servers для Context7, Vue, Nuxt UI и Nuxt
 
-Локальные code-intelligence MCP, такие как Serena, GitNexus и Postgres, оставлены как commented examples. Они зависят от вашей машины, токенов и локальных daemons.
+## MCP Coverage
+
+Starter kit разделяет переносимые MCP defaults и recommended local integrations. Локальные entries входят в рекомендованный full setup, но остаются commented в public baseline, потому что им нужны local daemons, paths, ports, bearer tokens, plugin state или database credentials.
+
+| MCP или plugin | Статус в репозитории | Source | Почему |
+| --- | --- | --- | --- |
+| `github@openai-curated` | включен в `templates/config.recommended.toml` | https://github.com/openai/plugins/tree/main/plugins/github | GitHub repositories, issues, pull requests и review workflow |
+| `superpowers@openai-curated` | включен в `templates/config.recommended.toml` | https://github.com/openai/plugins/tree/main/plugins/superpowers | planning, TDD, debugging, verification и development workflow skills |
+| `context7` | включен в `templates/config.recommended.toml` | https://github.com/upstash/context7 | публичный docs server, локальный daemon не нужен |
+| `vue-docs` | включен в `templates/config.recommended.toml` | https://github.com/joelbarmettlerUZH/vue-mcp | публичная документация Vue ecosystem |
+| `nuxt-ui-remote` | включен в `templates/config.recommended.toml` | https://github.com/nuxt/ui | публичная документация Nuxt UI |
+| `nuxt-remote` | включен в `templates/config.recommended.toml` | https://github.com/nuxt/nuxt | публичная документация Nuxt |
+| `serena` | recommended local MCP; commented example в `templates/config.recommended.toml`; упоминается в `templates/AGENTS.md` и agents | https://github.com/oraios/serena | semantic code navigation, references и targeted edits |
+| `gitnexus` | recommended local MCP; commented example в `templates/config.recommended.toml`; упоминается в `templates/AGENTS.md` и многих agents | https://github.com/abhigyanpatwari/GitNexus | code graph, impact analysis, route maps, execution flows и repo context |
+| `postgres` | recommended local MCP; commented example в `templates/config.recommended.toml`; упоминается в `templates/AGENTS.md` и data/API agents | https://github.com/modelcontextprotocol/servers | local database inspection; лучше read-only без явного подтверждения |
+| `open-design` | recommended local MCP для design workspaces | https://github.com/nexu-io/open-design | local design artifacts, design-system context и visual handoff |
+| `claude-mem` | recommended local plugin/runtime для memory continuity | https://github.com/thedotmack/claude-mem | durable cross-session memory в `~/.claude-mem` и `mcp-search` tools |
+
+`templates/AGENTS.md` намеренно просит Codex использовать Serena, GitNexus, Context7, framework docs MCP, Open Design MCP, claude-mem и database MCP, когда они доступны. Baseline config по умолчанию включает только переносимые public docs servers; recommended local integrations нужно включать после установки их daemons/plugins.
+
+Для claude-mem используйте его собственный installer/runtime flow, например:
+
+```bash
+npx claude-mem@latest install
+```
+
+После настройки перезапустите Codex и проверьте, что видит runtime:
+
+```bash
+codex mcp list
+```
 
 Ручная проверка runtime-интеграции:
 

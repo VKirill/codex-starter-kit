@@ -17,6 +17,8 @@ Goal:
 - install the recommended ~/.codex/config.toml from templates/config.recommended.toml
 - enable GitHub and Superpowers plugin entries through config.toml
 - enable public docs MCP servers for Context7, Vue, Nuxt UI, and Nuxt
+- check and document recommended local MCP/plugin routes for Serena, GitNexus, Postgres, Open Design, and claude-mem
+- include GitHub/source links for every enabled plugin and recommended MCP/plugin route
 - preserve old files with timestamped .bak-* backups
 
 Work step by step:
@@ -31,12 +33,15 @@ Work step by step:
 7. If the dry run looks safe, run the install with backups:
    ./install.sh
 8. Verify that ~/.codex/config.toml contains GitHub and Superpowers plugins, plus MCP servers context7, vue-docs, nuxt-ui-remote, and nuxt-remote.
-9. If the codex command is available, run:
+9. Report that Serena, GitNexus, Postgres, Open Design, and claude-mem are recommended local/plugin routes for the full starter-kit workflow.
+10. For each enabled plugin and recommended MCP/plugin route, show its GitHub/source link from README.md or templates/config.recommended.toml.
+11. If any recommended local MCP/plugin is already installed and safe to verify, check it with `codex mcp list` or its own status command. Do not write private ports, local paths, bearer tokens, or database credentials into the public starter-kit files.
+12. If the codex command is available, run:
    codex plugin marketplace upgrade
    codex mcp list
-10. Validate installed agents:
+13. Validate installed agents:
    ./install.sh --validate-only
-11. At the end, briefly summarize what changed, where backups were written, and that Codex must be restarted.
+14. At the end, briefly summarize what changed, where backups were written, which recommended MCP/plugin routes are active or missing, and that Codex must be restarted.
 
 Safety rules:
 - do not delete ~/.codex, ~/.agents, or existing agents/skills without backups

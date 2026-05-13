@@ -21,9 +21,11 @@ max_depth = 1
 
 # Official/curated Codex plugins. Codex fetches/caches their skills, apps,
 # hooks, and MCP capabilities when the plugin system is enabled and restarted.
+# GitHub plugin source: https://github.com/openai/plugins/tree/main/plugins/github
 [plugins."github@openai-curated"]
 enabled = true
 
+# Superpowers plugin source: https://github.com/openai/plugins/tree/main/plugins/superpowers
 [plugins."superpowers@openai-curated"]
 enabled = true
 
@@ -32,39 +34,59 @@ plugin_hooks = true
 
 # Public remote documentation MCP servers. They are enabled by default because
 # they do not require local daemons or machine-specific bearer tokens.
+# Context7 source: https://github.com/upstash/context7
 [mcp_servers.context7]
 url = "https://mcp.context7.com/mcp"
 enabled = true
 default_tools_approval_mode = "approve"
 
+# Vue Docs MCP source: https://github.com/joelbarmettlerUZH/vue-mcp
 [mcp_servers.vue-docs]
 url = "https://mcp.vue-mcp.org/mcp"
 enabled = true
 default_tools_approval_mode = "approve"
 
+# Nuxt UI source: https://github.com/nuxt/ui
 [mcp_servers.nuxt-ui-remote]
 url = "https://ui.nuxt.com/mcp"
 enabled = true
 default_tools_approval_mode = "approve"
 
+# Nuxt source: https://github.com/nuxt/nuxt
 [mcp_servers.nuxt-remote]
 url = "https://nuxt.com/mcp"
 enabled = true
 default_tools_approval_mode = "approve"
 
-# Optional local code-intelligence MCP examples.
-# Enable only after installing/running the matching local server.
+# Recommended local MCP/plugin examples for the full starter-kit experience.
+# They are commented because they need local daemons, machine-specific paths,
+# ports, bearer tokens, or plugin marketplace state.
+#
+# Serena source: https://github.com/oraios/serena
 # [mcp_servers.serena]
 # url = "http://127.0.0.1:9400/mcp"
 # bearer_token_env_var = "CODEX_MCP_BEARER"
 # default_tools_approval_mode = "approve"
 #
+# GitNexus source: https://github.com/abhigyanpatwari/GitNexus
 # [mcp_servers.gitnexus]
 # url = "http://127.0.0.1:9401/api/mcp"
 # bearer_token_env_var = "CODEX_MCP_BEARER"
 # default_tools_approval_mode = "approve"
 #
+# Postgres MCP source: https://github.com/modelcontextprotocol/servers
 # [mcp_servers.postgres]
 # url = "http://127.0.0.1:9402/mcp"
 # bearer_token_env_var = "CODEX_MCP_BEARER"
 # default_tools_approval_mode = "prompt"
+#
+# Open Design source: https://github.com/nexu-io/open-design
+# [mcp_servers.open-design]
+# command = "node"
+# args = ["/path/to/open-design/apps/daemon/dist/cli.js", "mcp", "--daemon-url", "http://127.0.0.1:3501"]
+#
+# claude-mem source: https://github.com/thedotmack/claude-mem
+# Install/setup with:
+#   npx claude-mem@latest install
+# Then restart Codex and verify with:
+#   codex mcp list
