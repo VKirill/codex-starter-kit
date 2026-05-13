@@ -196,6 +196,7 @@ Installer работает в baseline mode: он делает этот starter 
 - `codex plugin marketplace upgrade` и `codex mcp list` запускаются только если `codex` есть в `PATH`
 - `rules/default.rules` снижает количество запросов подтверждения для read-only команд: package metadata checks, Linux inspection, service status, Docker/Kubernetes/Terraform inspection и GitHub CLI view/list
 - safety hook продолжает блокировать разрушительные или мутирующие варианты: `git reset --hard`, `git clean`, force push, `npm audit fix`, `go env -w`, `journalctl --vacuum-*`, а также mutating `curl`/`wget` requests
+- сообщения hook'а сразу подсказывают Codex, какие read-only проверки выполнить дальше; часть Git cleanup/restore команд проходит один раз после свежей проверки `git status` плюс `git diff` или `git clean -nd` в той же рабочей директории
 
 Опасный режим:
 
