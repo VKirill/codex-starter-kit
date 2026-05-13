@@ -3,10 +3,16 @@
 
   <h1>Codex Starter Kit</h1>
 
-  <p><strong>Готовый стартовый набор для OpenAI Codex CLI: агенты, skills, hooks, MCP, plugins и глобальный AGENTS.md.</strong></p>
+  <p><strong>A ready-to-use baseline for OpenAI Codex CLI: agents, skills, hooks, MCP, plugins, and global AGENTS.md.</strong></p>
 
   <p>
-    Установите один раз, перезапустите Codex и получите рабочую базу для разработки, ревью, QA, DevOps, дизайна, продукта, данных и безопасности.
+    Install it once, restart Codex, and get a practical working setup for development, review, QA, DevOps, design, product, data, and security work.
+  </p>
+
+  <p>
+    <a href="README.md">English</a>
+    ·
+    <a href="README-RU.md">Русская версия</a>
   </p>
 
   <p>
@@ -25,138 +31,138 @@
   </p>
 </div>
 
-## Что Это
+## What This Is
 
-`codex-starter-kit` превращает чистый Codex CLI в готовую рабочую среду.
+`codex-starter-kit` turns a clean Codex CLI setup into a ready working environment.
 
-Внутри уже лежат:
+It includes:
 
-- 61 кастомный Codex-агент в `agents/*.toml`
-- 100 reusable skills в `skills/*/SKILL.md`
-- глобальные правила работы Codex в `templates/AGENTS.md`
-- безопасный shell hook против опасных команд
-- базовый `~/.codex/config.toml` с GitHub и Superpowers plugins
-- публичные docs MCP: Context7, Vue, Nuxt UI, Nuxt
-- установщик с `--dry-run`, backup-режимом и валидацией
+- 61 custom Codex agents in `agents/*.toml`
+- 100 reusable skills in `skills/*/SKILL.md`
+- global Codex working rules in `templates/AGENTS.md`
+- a shell safety hook for risky commands
+- a baseline `~/.codex/config.toml` with GitHub and Superpowers plugins
+- public docs MCP servers: Context7, Vue, Nuxt UI, and Nuxt
+- an installer with `--dry-run`, backups, runtime refresh, and validation
 
-Главная идея простая: вы не собираете рабочий Codex-процесс с нуля. Вы ставите базу, проверяете ее и дальше настраиваете под свои проекты через локальные `AGENTS.md`.
+The point is simple: you do not rebuild a Codex workflow from scratch. Install the baseline, verify it, then keep project-specific rules in each repository's local `AGENTS.md`.
 
-## Быстрый Путь
+## Fast Path
 
-Если вы хотите, чтобы Codex сам сделал установку, откройте Codex на нужной машине и вставьте prompt из следующего блока.
+If you want Codex to install this kit for you, open Codex on the target machine and paste this prompt.
 
 ```text
-Ты должен установить Codex Starter Kit для OpenAI Codex CLI и проверить, что установка безопасна.
+Install Codex Starter Kit for OpenAI Codex CLI and verify that the installation is safe.
 
-Репозиторий:
+Repository:
 https://github.com/VKirill/codex-starter-kit
 
-Цель:
-- сделать этот starter kit базовой настройкой Codex на этой машине
-- установить глобальный ~/.codex/AGENTS.md из templates/AGENTS.md
-- установить кастомных агентов в ~/.codex/agents
-- установить skills в ~/.agents/skills
-- установить safety hooks в ~/.codex/hooks и ~/.codex/hooks.json
-- установить рекомендуемый ~/.codex/config.toml из templates/config.recommended.toml
-- включить GitHub и Superpowers plugin entries через config.toml
-- включить public docs MCP servers для Context7, Vue, Nuxt UI и Nuxt
-- сохранить старые файлы через timestamped .bak-* backups
+Goal:
+- make this starter kit the baseline Codex setup on this machine
+- install global ~/.codex/AGENTS.md from templates/AGENTS.md
+- install custom agents into ~/.codex/agents
+- install skills into ~/.agents/skills
+- install safety hooks into ~/.codex/hooks and ~/.codex/hooks.json
+- install the recommended ~/.codex/config.toml from templates/config.recommended.toml
+- enable GitHub and Superpowers plugin entries through config.toml
+- enable public docs MCP servers for Context7, Vue, Nuxt UI, and Nuxt
+- preserve old files with timestamped .bak-* backups
 
-Работай пошагово:
-1. Если репозитория еще нет, клонируй его в ~/projects/codex-starter-kit.
-2. Если репозиторий уже есть, перейди в него и проверь текущее состояние git.
-3. Прочитай README.md, install.py и templates/config.recommended.toml.
-4. Запусти проверку пакета:
+Work step by step:
+1. If the repository is missing, clone it into ~/projects/codex-starter-kit.
+2. If the repository already exists, enter it and check the current git status.
+3. Read README.md, install.py, and templates/config.recommended.toml.
+4. Run the pack validation:
    python3 scripts/validate-pack.py
-5. Запусти dry run:
+5. Run a dry run:
    ./install.sh --dry-run
-6. Покажи мне, какие пути будут заменены, и отдельно посчитай агентов и skills.
-7. Если dry run выглядит безопасно, запусти установку с backup-режимом:
+6. Show me which paths will be replaced, then count agents and skills separately.
+7. If the dry run looks safe, run the install with backups:
    ./install.sh
-8. Проверь, что ~/.codex/config.toml содержит GitHub и Superpowers plugins, а также MCP servers context7, vue-docs, nuxt-ui-remote и nuxt-remote.
-9. Если команда codex доступна, запусти:
+8. Verify that ~/.codex/config.toml contains GitHub and Superpowers plugins, plus MCP servers context7, vue-docs, nuxt-ui-remote, and nuxt-remote.
+9. If the codex command is available, run:
    codex plugin marketplace upgrade
    codex mcp list
-10. Проверь установленных агентов:
+10. Validate installed agents:
    ./install.sh --validate-only
-11. В конце кратко напиши, что изменилось, где лежат backups и что нужно перезапустить Codex.
+11. At the end, briefly summarize what changed, where backups were written, and that Codex must be restarted.
 
-Правила безопасности:
-- не удаляй ~/.codex, ~/.agents или существующие agents/skills без backup
-- не используй --force и --no-backup без моего явного разрешения
-- не копируй secrets, bearer tokens, приватные MCP настройки и локальные database credentials
-- если команда требует повышенного доступа или сетевого разрешения, сначала объясни зачем
-- если проверка падает, остановись, покажи ошибку и предложи самый маленький безопасный fix
+Safety rules:
+- do not delete ~/.codex, ~/.agents, or existing agents/skills without backups
+- do not use --force or --no-backup without my explicit approval
+- do not copy secrets, bearer tokens, private MCP settings, or local database credentials
+- if a command needs elevated access or network approval, explain why first
+- if a check fails, stop, show the error, and suggest the smallest safe fix
 ```
 
-## Ручная Установка
+## Manual Install
 
-Клонируйте репозиторий:
+Clone the repository:
 
 ```bash
 git clone https://github.com/VKirill/codex-starter-kit ~/projects/codex-starter-kit
 cd ~/projects/codex-starter-kit
 ```
 
-Проверьте пакет:
+Validate the pack:
 
 ```bash
 python3 scripts/validate-pack.py
 ```
 
-Посмотрите, что установщик собирается заменить:
+Preview what the installer will replace:
 
 ```bash
 ./install.sh --dry-run
 ```
 
-Установите baseline с backup-режимом:
+Install the baseline with backups:
 
 ```bash
 ./install.sh
 ```
 
-Проверьте установленных агентов:
+Validate installed agents:
 
 ```bash
 ./install.sh --validate-only
 ```
 
-После установки перезапустите Codex. Без перезапуска глобальные инструкции, agents, skills, hooks и plugins могут не подхватиться.
+Restart Codex after installation. Global instructions, agents, skills, hooks, and plugins may not load until the next Codex session.
 
-## Что Будет Установлено
+## What Gets Installed
 
-| Путь | Что туда попадет | Зачем |
+| Path | What goes there | Why |
 | --- | --- | --- |
-| `~/.codex/AGENTS.md` | глобальные рабочие правила | единое поведение Codex во всех проектах |
-| `~/.codex/agents/` | 61 кастомный subagent | роли для разработки, ревью, QA, DevOps, продукта и дизайна |
-| `~/.agents/skills/` | 100 skills | reusable инструкции для задач и доменов |
-| `~/.codex/hooks/` | safety hook scripts | блокировка частых опасных shell-команд |
-| `~/.codex/hooks.json` | hook config | подключение safety hook к Codex |
+| `~/.codex/AGENTS.md` | global working rules | consistent Codex behavior across projects |
+| `~/.codex/agents/` | 61 custom subagents | roles for development, review, QA, DevOps, product, and design |
+| `~/.agents/skills/` | 100 skills | reusable instructions for tasks and domains |
+| `~/.codex/hooks/` | safety hook scripts | guards against common risky shell commands |
+| `~/.codex/hooks.json` | hook config | connects the safety hook to Codex |
 | `~/.codex/config.toml` | baseline config | plugins, MCP servers, approvals, docs discovery |
 
-По умолчанию установщик заменяет managed paths и сначала переносит старые файлы в `.bak-*` backups.
+By default, the installer replaces managed paths only after moving existing files to timestamped `.bak-*` backups.
 
-## Карта Агентов
+## Agent Map
 
-Агенты лежат в `agents/*.toml`. Каждый агент имеет узкую роль, свой `model_reasoning_effort`, варианты nickname и ограниченный набор skills.
+Agents live in `agents/*.toml`. Each agent has a narrow role, its own `model_reasoning_effort`, nickname candidates, and a focused skill set.
 
-| Категория | Когда выбирать | Агенты |
+| Category | Use it for | Agents |
 | --- | --- | --- |
-| <img alt="Orchestration" src="https://img.shields.io/badge/Flow-Orchestration-0f172a"> | большая задача, план, workflow, координация | `agents_orchestrator`, `project_manager_senior`, `specialized_workflow_architect`, `automation_governance_architect` |
-| <img alt="Engineering" src="https://img.shields.io/badge/Build-Engineering-2563eb"> | backend, frontend, mobile, CMS, архитектура, код | `engineering_backend_architect`, `engineering_frontend_developer`, `engineering_senior_developer`, `engineering_software_architect`, `engineering_minimal_change_engineer`, `engineering_rapid_prototyper`, `engineering_mobile_app_builder`, `engineering_cms_developer`, `engineering_codebase_onboarding_engineer`, `engineering_code_reviewer`, `engineering_technical_writer`, `engineering_git_workflow_master`, `lsp_index_engineer`, `terminal_integration_specialist`, `specialized_mcp_builder`, `specialized_developer_advocate` |
+| <img alt="Orchestration" src="https://img.shields.io/badge/Flow-Orchestration-0f172a"> | large tasks, planning, workflows, coordination | `agents_orchestrator`, `project_manager_senior`, `specialized_workflow_architect`, `automation_governance_architect` |
+| <img alt="Engineering" src="https://img.shields.io/badge/Build-Engineering-2563eb"> | backend, frontend, mobile, CMS, architecture, code | `engineering_backend_architect`, `engineering_frontend_developer`, `engineering_senior_developer`, `engineering_software_architect`, `engineering_minimal_change_engineer`, `engineering_rapid_prototyper`, `engineering_mobile_app_builder`, `engineering_cms_developer`, `engineering_codebase_onboarding_engineer`, `engineering_code_reviewer`, `engineering_technical_writer`, `engineering_git_workflow_master`, `lsp_index_engineer`, `terminal_integration_specialist`, `specialized_mcp_builder`, `specialized_developer_advocate` |
 | <img alt="Data and AI" src="https://img.shields.io/badge/Data-AI%20%26%20Pipelines-7c3aed"> | ML, data pipelines, databases, email/audio intelligence | `engineering_ai_engineer`, `engineering_ai_data_remediation_engineer`, `engineering_data_engineer`, `engineering_database_optimizer`, `engineering_email_intelligence_engineer`, `engineering_voice_ai_integration_engineer`, `specialized_model_qa` |
 | <img alt="Ops and Security" src="https://img.shields.io/badge/Ops-Security%20%26%20Reliability-dc2626"> | infrastructure, incidents, security, compliance | `engineering_devops_automator`, `engineering_sre`, `engineering_security_engineer`, `engineering_threat_detection_engineer`, `engineering_incident_response_commander`, `engineering_autonomous_optimization_architect`, `compliance_auditor` |
-| <img alt="Testing" src="https://img.shields.io/badge/Proof-Testing%20%26%20QA-16a34a"> | проверки, evidence, accessibility, performance | `testing_api_tester`, `testing_evidence_collector`, `testing_accessibility_auditor`, `testing_performance_benchmarker`, `testing_reality_checker`, `testing_tool_evaluator`, `testing_test_results_analyzer`, `testing_workflow_optimizer` |
-| <img alt="Product" src="https://img.shields.io/badge/Product-Delivery%20%26%20Research-f97316"> | roadmap, feedback, sprint, эксперименты, delivery | `product_manager`, `product_feedback_synthesizer`, `product_trend_researcher`, `product_sprint_prioritizer`, `product_behavioral_nudge_engine`, `project_management_project_shepherd`, `project_management_experiment_tracker`, `project_management_jira_workflow_steward`, `project_management_studio_operations`, `project_management_studio_producer` |
-| <img alt="Design" src="https://img.shields.io/badge/Design-UX%20%26%20Brand-ec4899"> | UI, UX, brand, визуалы, research | `design_ui_designer`, `design_ux_architect`, `design_ux_researcher`, `design_brand_guardian`, `design_visual_storyteller`, `design_image_prompt_engineer`, `design_inclusive_visuals_specialist`, `design_whimsy_injector` |
-| <img alt="Knowledge" src="https://img.shields.io/badge/Knowledge-Notes%20%26%20Systems-0891b2"> | knowledge base, notes, cross-domain reasoning | `zk_steward` |
+| <img alt="Testing" src="https://img.shields.io/badge/Proof-Testing%20%26%20QA-16a34a"> | checks, evidence, accessibility, performance | `testing_api_tester`, `testing_evidence_collector`, `testing_accessibility_auditor`, `testing_performance_benchmarker`, `testing_reality_checker`, `testing_tool_evaluator`, `testing_test_results_analyzer`, `testing_workflow_optimizer` |
+| <img alt="Product" src="https://img.shields.io/badge/Product-Delivery%20%26%20Research-f97316"> | roadmaps, feedback, sprints, experiments, delivery | `product_manager`, `product_feedback_synthesizer`, `product_trend_researcher`, `product_sprint_prioritizer`, `product_behavioral_nudge_engine`, `project_management_project_shepherd`, `project_management_experiment_tracker`, `project_management_jira_workflow_steward`, `project_management_studio_operations`, `project_management_studio_producer` |
+| <img alt="Design" src="https://img.shields.io/badge/Design-UX%20%26%20Brand-ec4899"> | UI, UX, brand, visuals, research | `design_ui_designer`, `design_ux_architect`, `design_ux_researcher`, `design_brand_guardian`, `design_visual_storyteller`, `design_image_prompt_engineer`, `design_inclusive_visuals_specialist`, `design_whimsy_injector` |
+| <img alt="Knowledge" src="https://img.shields.io/badge/Knowledge-Notes%20%26%20Systems-0891b2"> | knowledge bases, notes, cross-domain reasoning | `zk_steward` |
 
-## Skills По Смыслу
+## Skill Groups
 
-Skills находятся в `skills/`. Они ставятся в `~/.agents/skills` и помогают агентам работать точнее.
+Skills live in `skills/`. The installer copies them to `~/.agents/skills`, where agents can use them for sharper task behavior.
 
-| Группа | Примеры |
+| Group | Examples |
 | --- | --- |
 | Process | `planning-methodology`, `task-decomposition`, `testing-patterns`, `bug-hunter`, `code-review-checklist` |
 | Frontend | `frontend-developer`, `react-patterns`, `nextjs-best-practices`, `vue-developer`, `ui-designer`, `playwright-skill` |
@@ -170,56 +176,56 @@ Subagents use role-based allowlist emulation through `[[skills.config]] enabled 
 
 ## Safety Model
 
-Installer работает в baseline mode: он делает этот starter kit главным набором Codex-настроек.
+The installer runs in baseline mode: it makes this starter kit the main Codex setup on the machine.
 
-Защита по умолчанию:
+Default safeguards:
 
-- `./install.sh --dry-run` показывает будущие замены без записи
-- старые managed paths уходят в timestamped `.bak-*` backups
-- agent TOML проверяется после установки
-- `skills.config` paths переписываются под ваш home directory
-- `codex plugin marketplace upgrade` и `codex mcp list` запускаются только если `codex` есть в `PATH`
+- `./install.sh --dry-run` previews replacements without writing
+- old managed paths are moved to timestamped `.bak-*` backups
+- agent TOML files are validated after install
+- `skills.config` paths are rewritten for your home directory
+- `codex plugin marketplace upgrade` and `codex mcp list` run only when `codex` is available in `PATH`
 
-Опасный режим:
+Dangerous mode:
 
 ```bash
 ./install.sh --force
 ```
 
-Используйте его только если точно хотите заменить managed files без backups.
+Use it only when you intentionally want to replace managed files without backups.
 
 ## Config, Plugins, MCP
 
-Baseline config лежит здесь:
+The baseline config lives here:
 
 ```text
 templates/config.recommended.toml
 ```
 
-Установщик записывает его сюда:
+The installer writes it here:
 
 ```text
 ~/.codex/config.toml
 ```
 
-В config включены:
+The config enables:
 
 - GitHub plugin entry
 - Superpowers plugin entry
 - project docs discovery defaults
 - agent concurrency defaults
-- public remote docs MCP servers для Context7, Vue, Nuxt UI и Nuxt
+- public remote docs MCP servers for Context7, Vue, Nuxt UI, and Nuxt
 
-Локальные code-intelligence MCP, такие как Serena, GitNexus и Postgres, оставлены как commented examples. Они зависят от вашей машины, токенов и локальных daemons.
+Local code-intelligence MCP servers such as Serena, GitNexus, and Postgres are left as commented examples. They depend on your machine, tokens, and local daemons.
 
-Ручная проверка runtime-интеграции:
+Manual runtime checks:
 
 ```bash
 codex plugin marketplace upgrade
 codex mcp list
 ```
 
-Ручное добавление MCP, если вы не используете baseline config:
+Manual MCP add commands if you do not use the baseline config:
 
 ```bash
 codex mcp add context7 --url https://mcp.context7.com/mcp
@@ -228,21 +234,21 @@ codex mcp add nuxt-ui-remote --url https://ui.nuxt.com/mcp
 codex mcp add nuxt-remote --url https://nuxt.com/mcp
 ```
 
-## Настройка Путей
+## Custom Paths
 
-Другой Codex home:
+Use a different Codex home:
 
 ```bash
 ./install.sh --codex-home /path/to/.codex
 ```
 
-Другой skills home:
+Use a different skills home:
 
 ```bash
 ./install.sh --skills-home /path/to/skills
 ```
 
-Установить не все части:
+Skip parts of the install:
 
 ```bash
 ./install.sh --skip-hooks
@@ -253,7 +259,7 @@ codex mcp add nuxt-remote --url https://nuxt.com/mcp
 ./install.sh --skip-runtime-refresh
 ```
 
-## Структура Репозитория
+## Repository Layout
 
 ```text
 codex-starter-kit/
@@ -271,34 +277,34 @@ codex-starter-kit/
 └── install.sh
 ```
 
-## Разработка
+## Development
 
-Проверить пакет:
+Validate the pack:
 
 ```bash
 python3 scripts/validate-pack.py
 ```
 
-Проверить dry run:
+Check installer dry run:
 
 ```bash
 ./install.sh --dry-run
 ```
 
-Проверить установленных агентов:
+Validate installed agents:
 
 ```bash
 ./install.sh --validate-only
 ```
 
-## Что Не Делать
+## What Not To Do
 
-- Не коммитьте secrets, bearer tokens и private MCP config.
-- Не кладите project-specific правила в global `AGENTS.md`.
-- Не запускайте `--force`, если вам нужны backups.
-- Не добавляйте local-only MCP ports в public baseline config.
+- Do not commit secrets, bearer tokens, or private MCP config.
+- Do not put project-specific rules in the global `AGENTS.md`.
+- Do not run `--force` if you need backups.
+- Do not add local-only MCP ports to the public baseline config.
 
-Project-specific инструкции держите в `AGENTS.md` конкретного репозитория.
+Keep project-specific instructions in each repository's local `AGENTS.md`.
 
 ## GitHub Topics
 
