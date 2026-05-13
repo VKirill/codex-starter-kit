@@ -196,7 +196,7 @@ Default safeguards:
 - `codex plugin marketplace upgrade` and `codex mcp list` run only when `codex` is available in `PATH`
 - `rules/default.rules` reduces routine approval prompts for read-only commands such as package metadata checks, Linux inspection commands, service status checks, Docker/Kubernetes/Terraform read-only inspection, and GitHub CLI view/list commands
 - npm workspace forms (`npm --workspace`, `npm -w`, `npm --workspaces`, `npm --prefix`) and pnpm workspace forms (`pnpm --filter`, `pnpm -F`, `pnpm --recursive`, `pnpm -r`, `pnpm --dir`, `pnpm -C`) are approved for handoff development workflows
-- `hooks/handoff-intake-classifier.py` classifies every user prompt on `UserPromptSubmit`. It works without network in deterministic mode and can optionally call a small model for ambiguous prompts when `~/.codex/private/handoff-classifier.env` provides `OPENAI_API_KEY` and `HANDOFF_CLASSIFIER_MODEL`.
+- `hooks/handoff-intake-classifier.py` classifies user prompts on `UserPromptSubmit` only when `~/.codex/private/handoff-classifier.env` exists. With that private file present, it works without network in deterministic mode and can optionally call a small model for ambiguous prompts when `OPENAI_API_KEY` and `HANDOFF_CLASSIFIER_MODEL` are set there.
 - `hooks/handoff-permission-request.py` auto-approves safe PermissionRequest prompts for MCP calls and commands already covered by `rules/default.rules`, which helps current sessions continue when normal rules were not reloaded yet
 - handoff service controls are approved for common app/process managers: `pm2 start|stop|restart|reload`, `supervisorctl start|stop|restart`, `systemctl start|stop|restart|reload`, `service <name> restart`, `docker compose restart`, `docker compose up -d`, direct `docker|podman restart`, and web-server reload commands for nginx/Angie/Apache/Caddy
 - the safety hook still blocks destructive or mutating variants such as `git reset --hard`, `git clean`, force pushes, `npm audit fix`, `go env -w`, `journalctl --vacuum-*`, and mutating `curl`/`wget` requests
@@ -206,7 +206,7 @@ Default safeguards:
 - MCP servers in this kit use `default_tools_approval_mode = "approve"` for handoff flow; agents must still keep database and local-machine MCP usage read-only unless the user explicitly asks for mutation
 - `templates/AGENTS.md` includes handoff intake scoring and task-ledger rules. It treats "run this plan" as inline execution; subagents are used only when the user explicitly authorizes delegation, parallel work, or subagents.
 
-Optional LLM fallback for prompt classification:
+Optional prompt classification and LLM fallback:
 
 ```bash
 mkdir -p ~/.codex/private

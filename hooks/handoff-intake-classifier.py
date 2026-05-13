@@ -42,6 +42,10 @@ def load_private_env() -> dict[str, str]:
     return values
 
 
+def enabled() -> bool:
+    return ENV_PATH.is_file()
+
+
 def setting(name: str, default: str = "") -> str:
     private = load_private_env()
     return os.environ.get(name) or private.get(name) or default
@@ -386,6 +390,9 @@ def context_from_classification(classification: dict[str, Any], source: str) -> 
 
 
 def main() -> int:
+    if not enabled():
+        return 0
+
     try:
         payload = json.load(sys.stdin)
     except json.JSONDecodeError:

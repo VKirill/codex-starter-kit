@@ -196,7 +196,7 @@ Installer работает в baseline mode: он делает этот starter 
 - `codex plugin marketplace upgrade` и `codex mcp list` запускаются только если `codex` есть в `PATH`
 - `rules/default.rules` снижает количество запросов подтверждения для read-only команд: package metadata checks, Linux inspection, service status, Docker/Kubernetes/Terraform inspection и GitHub CLI view/list
 - npm workspace формы (`npm --workspace`, `npm -w`, `npm --workspaces`, `npm --prefix`) и pnpm workspace формы (`pnpm --filter`, `pnpm -F`, `pnpm --recursive`, `pnpm -r`, `pnpm --dir`, `pnpm -C`) одобрены для handoff development workflow
-- `hooks/handoff-intake-classifier.py` классифицирует каждый user prompt на `UserPromptSubmit`. Без сети он работает deterministic-only, а для спорных prompts может опционально вызывать маленькую модель, если в `~/.codex/private/handoff-classifier.env` заданы `OPENAI_API_KEY` и `HANDOFF_CLASSIFIER_MODEL`.
+- `hooks/handoff-intake-classifier.py` классифицирует user prompts на `UserPromptSubmit` только если существует `~/.codex/private/handoff-classifier.env`. При наличии этого private-файла он без сети работает deterministic-only, а для спорных prompts может опционально вызывать маленькую модель, если там заданы `OPENAI_API_KEY` и `HANDOFF_CLASSIFIER_MODEL`.
 - `hooks/handoff-permission-request.py` автоматически одобряет безопасные PermissionRequest prompts для MCP calls и команд, уже описанных в `rules/default.rules`; это помогает текущим сессиям продолжать работу, если обычные rules ещё не перезагрузились
 - handoff service controls одобрены для частых app/process managers: `pm2 start|stop|restart|reload`, `supervisorctl start|stop|restart`, `systemctl start|stop|restart|reload`, `service <name> restart`, `docker compose restart`, `docker compose up -d`, прямой `docker|podman restart` и reload-команды для nginx/Angie/Apache/Caddy
 - safety hook продолжает блокировать разрушительные или мутирующие варианты: `git reset --hard`, `git clean`, force push, `npm audit fix`, `go env -w`, `journalctl --vacuum-*`, а также mutating `curl`/`wget` requests
@@ -206,7 +206,7 @@ Installer работает в baseline mode: он делает этот starter 
 - MCP servers в starter kit используют `default_tools_approval_mode = "approve"` для handoff flow; database и local-machine MCP всё равно должны использоваться read-only, если пользователь явно не просил mutation
 - `templates/AGENTS.md` содержит handoff intake scoring и task-ledger правила. "Запусти/выполни план" трактуется как inline execution; subagents используются только при явном разрешении на delegation, parallel work или subagents.
 
-Опциональный LLM fallback для классификации prompts:
+Опциональная классификация prompts и LLM fallback:
 
 ```bash
 mkdir -p ~/.codex/private
