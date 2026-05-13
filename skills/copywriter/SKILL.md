@@ -36,16 +36,18 @@ Loaded automatically when its description matches the active task. The body belo
 `copywriter` отвечает за смысл, оффер, структуру, тон и anti-AI фильтр.
 `ru-text` отвечает за русскую типографику, информационный стиль, редактуру, UX-writing и деловую переписку.
 
-Где искать `ru-text`:
+Как подключать `ru-text` переносимо:
 
-- В установленной среде: `/home/ubuntu/.agents/skills/ru-text/SKILL.md`
-- В starter kit: соседний skill `../ru-text/SKILL.md`
+- Предпочитай активацию по имени skill: `$ru-text` или явное упоминание `ru-text`.
+- Не зашивай абсолютные пути вроде `/home/ubuntu/...`: user skills могут лежать в `$HOME/.agents/skills`, repo skills — в `.agents/skills`, admin skills — в `/etc/codex/skills`, а plugins могут поставить skill в свой bundle.
+- Если нужно открыть файлы `ru-text`, используй путь `ru-text/SKILL.md`, который Codex показывает в списке доступных skills. Если путь неизвестен, найди skill по имени через поиск файлов: `**/ru-text/SKILL.md`.
+- Все reference-файлы `ru-text` открывай относительно найденного `ru-text/SKILL.md`: `references/info-style.md`, `references/ux-writing.md` и т. д.
 
 ### Как использовать ru-text
 
 1. Сначала определи тип текста: лендинг, UX, email, README/docs, release notes, статья, SEO или review существующего текста.
 2. Напиши или перепиши текст по правилам `copywriter`: конкретика, активный залог, живой ритм, без AI-клише.
-3. Если текст на русском, открой `ru-text/SKILL.md` и применяй его Always-On typography checklist:
+3. Если текст на русском, активируй `ru-text` по имени или открой найденный `ru-text/SKILL.md`, затем применяй его Always-On typography checklist:
    - кавычки «ёлочки», вложенные „лапки“;
    - длинное тире в тексте и короткое тире для диапазонов;
    - неразрывные пробелы после коротких предлогов и в сокращениях;
