@@ -145,8 +145,8 @@ Restart Codex after installation. Global instructions, agents, skills, hooks, an
 | `~/.codex/AGENTS.md` | global working rules | consistent Codex behavior across projects |
 | `~/.codex/agents/` | 62 custom subagents | roles for development, review, QA, DevOps, product, design, and copywriting |
 | `~/.agents/skills/` | 101 skills | reusable instructions for tasks and domains |
-| `~/.codex/hooks/` | safety and handoff hook scripts | guards risky shell commands, auto-approves known safe permission prompts, and nudges verification after installs/failures |
-| `~/.codex/hooks.json` | hook config | connects PermissionRequest, PreToolUse, and PostToolUse hooks to Codex |
+| `~/.codex/hooks/` | safety and handoff hook scripts | classifies user prompts, guards risky shell commands, auto-approves known safe permission prompts, and nudges verification after installs/failures |
+| `~/.codex/hooks.json` | hook config | connects UserPromptSubmit, PermissionRequest, PreToolUse, and PostToolUse hooks to Codex |
 | `~/.codex/rules/` | command approval rules | auto-approves common read-only development, Linux, package metadata, and diagnostics commands |
 | `~/.codex/config.toml` | baseline config | plugins, MCP servers, approvals, docs discovery |
 
@@ -196,6 +196,7 @@ Default safeguards:
 - `codex plugin marketplace upgrade` and `codex mcp list` run only when `codex` is available in `PATH`
 - `rules/default.rules` reduces routine approval prompts for read-only commands such as package metadata checks, Linux inspection commands, service status checks, Docker/Kubernetes/Terraform read-only inspection, and GitHub CLI view/list commands
 - npm workspace forms (`npm --workspace`, `npm -w`, `npm --workspaces`, `npm --prefix`) and pnpm workspace forms (`pnpm --filter`, `pnpm -F`, `pnpm --recursive`, `pnpm -r`, `pnpm --dir`, `pnpm -C`) are approved for handoff development workflows
+- `hooks/handoff-intake-classifier.py` classifies every user prompt on `UserPromptSubmit`. It works without network in deterministic mode and can optionally call a small model for ambiguous prompts when `~/.codex/private/handoff-classifier.env` provides `OPENAI_API_KEY` and `HANDOFF_CLASSIFIER_MODEL`.
 - `hooks/handoff-permission-request.py` auto-approves safe PermissionRequest prompts for MCP calls and commands already covered by `rules/default.rules`, which helps current sessions continue when normal rules were not reloaded yet
 - handoff service controls are approved for common app/process managers: `pm2 start|stop|restart|reload`, `supervisorctl start|stop|restart`, `systemctl start|stop|restart|reload`, `service <name> restart`, `docker compose restart`, `docker compose up -d`, direct `docker|podman restart`, and web-server reload commands for nginx/Angie/Apache/Caddy
 - the safety hook still blocks destructive or mutating variants such as `git reset --hard`, `git clean`, force pushes, `npm audit fix`, `go env -w`, `journalctl --vacuum-*`, and mutating `curl`/`wget` requests
@@ -204,6 +205,17 @@ Default safeguards:
 - `hooks/handoff-post-tool-use.py` adds follow-up context after package installs, failed shell commands, `git diff`, and verification commands so Codex checks diffs/tests, maps results back to the task ledger, or fixes the concrete failure before repeating work
 - MCP servers in this kit use `default_tools_approval_mode = "approve"` for handoff flow; agents must still keep database and local-machine MCP usage read-only unless the user explicitly asks for mutation
 - `templates/AGENTS.md` includes handoff intake scoring and task-ledger rules. It treats "run this plan" as inline execution; subagents are used only when the user explicitly authorizes delegation, parallel work, or subagents.
+
+Optional LLM fallback for prompt classification:
+
+```bash
+mkdir -p ~/.codex/private
+chmod 700 ~/.codex/private
+printf 'OPENAI_API_KEY=...\nHANDOFF_CLASSIFIER_MODEL=gpt-5.4-nano\nHANDOFF_CLASSIFIER_LLM=auto\n' > ~/.codex/private/handoff-classifier.env
+chmod 600 ~/.codex/private/handoff-classifier.env
+```
+
+Use `HANDOFF_CLASSIFIER_LLM=always` only for testing; `auto` keeps routine prompts deterministic and calls the model for ambiguous mixed question/action prompts.
 
 Dangerous mode:
 

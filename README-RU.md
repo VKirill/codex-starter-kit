@@ -145,8 +145,8 @@ python3 scripts/validate-pack.py
 | `~/.codex/AGENTS.md` | глобальные рабочие правила | единое поведение Codex во всех проектах |
 | `~/.codex/agents/` | 62 кастомных subagents | роли для разработки, ревью, QA, DevOps, продукта, дизайна и копирайтинга |
 | `~/.agents/skills/` | 101 skill | reusable инструкции для задач и доменов |
-| `~/.codex/hooks/` | safety и handoff hook scripts | блокировка опасных shell-команд, автоодобрение известных безопасных permission prompts и подсказки верификации после install/failure |
-| `~/.codex/hooks.json` | hook config | подключение PermissionRequest, PreToolUse и PostToolUse hooks к Codex |
+| `~/.codex/hooks/` | safety и handoff hook scripts | классификация пользовательских prompts, блокировка опасных shell-команд, автоодобрение известных безопасных permission prompts и подсказки верификации после install/failure |
+| `~/.codex/hooks.json` | hook config | подключение UserPromptSubmit, PermissionRequest, PreToolUse и PostToolUse hooks к Codex |
 | `~/.codex/rules/` | правила одобрения команд | автоодобрение частых read-only команд для разработки, Linux-диагностики, package metadata и infra inspection |
 | `~/.codex/config.toml` | baseline config | plugins, MCP servers, approvals, docs discovery |
 
@@ -196,6 +196,7 @@ Installer работает в baseline mode: он делает этот starter 
 - `codex plugin marketplace upgrade` и `codex mcp list` запускаются только если `codex` есть в `PATH`
 - `rules/default.rules` снижает количество запросов подтверждения для read-only команд: package metadata checks, Linux inspection, service status, Docker/Kubernetes/Terraform inspection и GitHub CLI view/list
 - npm workspace формы (`npm --workspace`, `npm -w`, `npm --workspaces`, `npm --prefix`) и pnpm workspace формы (`pnpm --filter`, `pnpm -F`, `pnpm --recursive`, `pnpm -r`, `pnpm --dir`, `pnpm -C`) одобрены для handoff development workflow
+- `hooks/handoff-intake-classifier.py` классифицирует каждый user prompt на `UserPromptSubmit`. Без сети он работает deterministic-only, а для спорных prompts может опционально вызывать маленькую модель, если в `~/.codex/private/handoff-classifier.env` заданы `OPENAI_API_KEY` и `HANDOFF_CLASSIFIER_MODEL`.
 - `hooks/handoff-permission-request.py` автоматически одобряет безопасные PermissionRequest prompts для MCP calls и команд, уже описанных в `rules/default.rules`; это помогает текущим сессиям продолжать работу, если обычные rules ещё не перезагрузились
 - handoff service controls одобрены для частых app/process managers: `pm2 start|stop|restart|reload`, `supervisorctl start|stop|restart`, `systemctl start|stop|restart|reload`, `service <name> restart`, `docker compose restart`, `docker compose up -d`, прямой `docker|podman restart` и reload-команды для nginx/Angie/Apache/Caddy
 - safety hook продолжает блокировать разрушительные или мутирующие варианты: `git reset --hard`, `git clean`, force push, `npm audit fix`, `go env -w`, `journalctl --vacuum-*`, а также mutating `curl`/`wget` requests
@@ -204,6 +205,17 @@ Installer работает в baseline mode: он делает этот starter 
 - `hooks/handoff-post-tool-use.py` добавляет follow-up context после package installs, failed shell commands, `git diff` и verification commands, чтобы Codex проверял diff/tests, связывал результат с task ledger или исправлял конкретную ошибку перед повтором команды
 - MCP servers в starter kit используют `default_tools_approval_mode = "approve"` для handoff flow; database и local-machine MCP всё равно должны использоваться read-only, если пользователь явно не просил mutation
 - `templates/AGENTS.md` содержит handoff intake scoring и task-ledger правила. "Запусти/выполни план" трактуется как inline execution; subagents используются только при явном разрешении на delegation, parallel work или subagents.
+
+Опциональный LLM fallback для классификации prompts:
+
+```bash
+mkdir -p ~/.codex/private
+chmod 700 ~/.codex/private
+printf 'OPENAI_API_KEY=...\nHANDOFF_CLASSIFIER_MODEL=gpt-5.4-nano\nHANDOFF_CLASSIFIER_LLM=auto\n' > ~/.codex/private/handoff-classifier.env
+chmod 600 ~/.codex/private/handoff-classifier.env
+```
+
+`HANDOFF_CLASSIFIER_LLM=always` лучше использовать только для тестов; `auto` оставляет обычные prompts на deterministic classifier и вызывает модель только для неоднозначных смешанных question/action prompts.
 
 Опасный режим:
 

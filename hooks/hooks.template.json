@@ -13,6 +13,19 @@
         ]
       }
     ],
+    "UserPromptSubmit": [
+      {
+        "matcher": ".*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 ${HOME}/.codex/hooks/handoff-intake-classifier.py",
+            "timeout": 4,
+            "statusMessage": "Classifying handoff intent"
+          }
+        ]
+      }
+    ],
     "PreToolUse": [
       {
         "matcher": "^Bash$|^shell$|^unified_exec$|^exec_command$",
