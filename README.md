@@ -23,8 +23,8 @@
 
   <p>
     <img alt="OpenAI Codex CLI" src="https://img.shields.io/badge/OpenAI-Codex%20CLI-111111">
-    <img alt="Agents" src="https://img.shields.io/badge/61-Custom%20Agents-2563eb">
-    <img alt="Skills" src="https://img.shields.io/badge/100-Skills-7c3aed">
+    <img alt="Agents" src="https://img.shields.io/badge/62-Custom%20Agents-2563eb">
+    <img alt="Skills" src="https://img.shields.io/badge/101-Skills-7c3aed">
     <img alt="MCP" src="https://img.shields.io/badge/MCP-Context7%20%7C%20Vue%20%7C%20Nuxt-16a34a">
     <img alt="Hooks" src="https://img.shields.io/badge/Hooks-Safety%20Guard-f97316">
     <img alt="License: MIT" src="https://img.shields.io/badge/License-MIT-059669">
@@ -37,8 +37,8 @@
 
 It includes:
 
-- 61 custom Codex agents in `agents/*.toml`
-- 100 reusable skills in `skills/*/SKILL.md`
+- 62 custom Codex agents in `agents/*.toml`
+- 101 reusable skills in `skills/*/SKILL.md`
 - global Codex working rules in `templates/AGENTS.md`
 - a shell safety hook for risky commands
 - default command approval rules in `rules/default.rules`
@@ -143,8 +143,8 @@ Restart Codex after installation. Global instructions, agents, skills, hooks, an
 | Path | What goes there | Why |
 | --- | --- | --- |
 | `~/.codex/AGENTS.md` | global working rules | consistent Codex behavior across projects |
-| `~/.codex/agents/` | 61 custom subagents | roles for development, review, QA, DevOps, product, and design |
-| `~/.agents/skills/` | 100 skills | reusable instructions for tasks and domains |
+| `~/.codex/agents/` | 62 custom subagents | roles for development, review, QA, DevOps, product, design, and copywriting |
+| `~/.agents/skills/` | 101 skills | reusable instructions for tasks and domains |
 | `~/.codex/hooks/` | safety and handoff hook scripts | guards risky shell commands, auto-approves known safe permission prompts, and nudges verification after installs/failures |
 | `~/.codex/hooks.json` | hook config | connects PermissionRequest, PreToolUse, and PostToolUse hooks to Codex |
 | `~/.codex/rules/` | command approval rules | auto-approves common read-only development, Linux, package metadata, and diagnostics commands |
@@ -179,7 +179,7 @@ Skills live in `skills/`. The installer copies them to `~/.agents/skills`, where
 | Data | `postgresql`, `database-design`, `prisma-expert`, `drizzle-orm-expert`, `redis-patterns`, `data-engineer` |
 | Ops | `docker-expert`, `terraform-specialist`, `linux-sysadmin`, `github-actions-templates`, `server-management` |
 | Security | `security-audit`, `backend-security-coder`, `find-bugs`, `incident-responder` |
-| Product and Docs | `copywriter`, `roadmap-methodology`, `goal-achievement-review`, `software-architecture` |
+| Product and Docs | `copywriter`, `ru-text`, `roadmap-methodology`, `goal-achievement-review`, `software-architecture` |
 
 Subagents use role-based allowlist emulation through `[[skills.config]] enabled = false`, so each role sees a focused skill menu instead of the whole library.
 
