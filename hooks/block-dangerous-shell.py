@@ -170,6 +170,12 @@ def classify(command: str) -> str | None:
                 return "git clean deletes untracked files. Use git clean -nd first and ask the user before deleting."
             if len(tokens) >= 2 and tokens[1] == "push" and any(token in {"--force", "--force-with-lease", "-f"} for token in tokens):
                 return "Force push is blocked. Ask the user for explicit approval and prefer --force-with-lease only when justified."
+            if len(tokens) >= 2 and tokens[1] in {"switch", "checkout"} and any(token in {"--force", "--discard-changes", "-f"} for token in tokens):
+                return "Forced git switch/checkout can discard local work. Use git status/git diff first, then ask for explicit approval."
+            if len(tokens) >= 2 and tokens[1] == "checkout" and "--" in tokens:
+                return "git checkout -- <path> discards local changes. Use git status/git diff first, then ask for the exact path restore."
+            if len(tokens) >= 2 and tokens[1] == "restore" and "--staged" not in tokens:
+                return "git restore can discard local changes. Use git status/git diff first, then ask for the exact restore."
             if len(tokens) >= 3 and tokens[1] == "branch" and "-D" in tokens:
                 return "Forced branch deletion is blocked. Ask the user for the exact branch deletion."
             if len(tokens) >= 3 and tokens[1] == "stash" and tokens[2] in {"clear", "drop"}:
