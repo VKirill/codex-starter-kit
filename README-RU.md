@@ -201,9 +201,9 @@ Installer работает в baseline mode: он делает этот starter 
 - safety hook продолжает блокировать разрушительные или мутирующие варианты: `git reset --hard`, `git clean`, force push, `npm audit fix`, `go env -w`, `journalctl --vacuum-*`, а также mutating `curl`/`wget` requests
 - persistent host/service mutations вроде `systemctl disable`, `systemctl mask`, `systemctl kill`, Docker volume deletion, container prune и host reboot/shutdown всё ещё блокируются или требуют явного подтверждения
 - сообщения hook'а сразу подсказывают Codex, какие read-only проверки выполнить дальше; часть Git cleanup/restore команд проходит один раз после свежей проверки `git status` плюс `git diff` или `git clean -nd` в той же рабочей директории
-- `hooks/handoff-post-tool-use.py` добавляет follow-up context после package installs и failed shell commands, чтобы Codex проверял diff/tests или исправлял конкретную ошибку перед повтором команды
+- `hooks/handoff-post-tool-use.py` добавляет follow-up context после package installs, failed shell commands, `git diff` и verification commands, чтобы Codex проверял diff/tests, связывал результат с task ledger или исправлял конкретную ошибку перед повтором команды
 - MCP servers в starter kit используют `default_tools_approval_mode = "approve"` для handoff flow; database и local-machine MCP всё равно должны использоваться read-only, если пользователь явно не просил mutation
-- `templates/AGENTS.md` трактует "запусти/выполни план" как inline execution. Subagents используются только при явном разрешении на delegation, parallel work или subagents.
+- `templates/AGENTS.md` содержит handoff intake scoring и task-ledger правила. "Запусти/выполни план" трактуется как inline execution; subagents используются только при явном разрешении на delegation, parallel work или subagents.
 
 Опасный режим:
 

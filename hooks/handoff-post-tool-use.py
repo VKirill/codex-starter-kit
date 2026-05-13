@@ -52,6 +52,52 @@ def package_install_command(command: str) -> bool:
     return program in package_managers and any(token in {"install", "i", "add"} for token in tokens[1:])
 
 
+def tokenized(command: str) -> list[str]:
+    try:
+        return shlex.split(command, posix=True)
+    except ValueError:
+        return []
+
+
+def git_diff_command(command: str) -> bool:
+    tokens = tokenized(command)
+    return len(tokens) >= 2 and tokens[0].rsplit("/", 1)[-1] == "git" and tokens[1] == "diff"
+
+
+def verification_command(command: str) -> bool:
+    tokens = tokenized(command)
+    if not tokens:
+        return False
+
+    program = tokens[0].rsplit("/", 1)[-1]
+    lower = [token.lower() for token in tokens]
+    joined = " ".join(lower)
+    direct = {
+        "pytest",
+        "vitest",
+        "jest",
+        "phpunit",
+        "rspec",
+        "mypy",
+        "pyright",
+        "basedpyright",
+        "eslint",
+        "tsc",
+        "ruff",
+        "black",
+        "isort",
+    }
+    if program in direct:
+        return True
+    if program in {"npm", "pnpm", "yarn", "bun"} and any(part in joined for part in ("test", "lint", "typecheck", "check", "build", "validate")):
+        return True
+    if program in {"cargo", "go", "dotnet", "mvn", "gradle", "make", "just", "task"} and any(token in lower for token in ("test", "lint", "check", "build", "verify", "vet")):
+        return True
+    if program == "python" or program == "python3":
+        return "-m" in lower and any(token in lower for token in ("pytest", "mypy", "ruff"))
+    return False
+
+
 def emit_context(context: str) -> None:
     print(
         json.dumps(
@@ -88,6 +134,18 @@ def main() -> int:
     if package_install_command(command):
         emit_context(
             "A package-manager install/add command completed. Before claiming completion, inspect `git status --short` and relevant package/lockfile diffs, then run the narrowest useful test/build/check command."
+        )
+        return 0
+
+    if git_diff_command(command):
+        emit_context(
+            "Use this diff as a self-review checkpoint: verify every changed line maps to the user's task ledger or a discovered shared root cause, and make sure unrelated user work was not touched."
+        )
+        return 0
+
+    if verification_command(command):
+        emit_context(
+            "A verification command completed. Before final response, map the result back to each task-ledger acceptance check, inspect `git status --short`/diff, and state any unverified residual risk."
         )
         return 0
 

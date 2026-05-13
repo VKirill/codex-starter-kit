@@ -201,9 +201,9 @@ Default safeguards:
 - the safety hook still blocks destructive or mutating variants such as `git reset --hard`, `git clean`, force pushes, `npm audit fix`, `go env -w`, `journalctl --vacuum-*`, and mutating `curl`/`wget` requests
 - persistent host/service mutations such as `systemctl disable`, `systemctl mask`, `systemctl kill`, Docker volume deletion, container prune, and host reboot/shutdown remain blocked or require explicit approval
 - hook block messages include the read-only checks Codex should run next; selected Git cleanup/restore commands are allowed once after fresh `git status` plus `git diff` or `git clean -nd` review in the same working directory
-- `hooks/handoff-post-tool-use.py` adds follow-up context after package installs and failed shell commands so Codex checks diffs/tests or fixes the concrete failure before repeating work
+- `hooks/handoff-post-tool-use.py` adds follow-up context after package installs, failed shell commands, `git diff`, and verification commands so Codex checks diffs/tests, maps results back to the task ledger, or fixes the concrete failure before repeating work
 - MCP servers in this kit use `default_tools_approval_mode = "approve"` for handoff flow; agents must still keep database and local-machine MCP usage read-only unless the user explicitly asks for mutation
-- `templates/AGENTS.md` treats "run this plan" as inline execution. Subagents are used only when the user explicitly authorizes delegation, parallel work, or subagents.
+- `templates/AGENTS.md` includes handoff intake scoring and task-ledger rules. It treats "run this plan" as inline execution; subagents are used only when the user explicitly authorizes delegation, parallel work, or subagents.
 
 Dangerous mode:
 

@@ -27,6 +27,17 @@ These instructions apply to every project unless a closer project `AGENTS.md` or
 - For high-risk changes, surface risk before editing.
 - For trivial tasks, avoid unnecessary ceremony.
 
+## Handoff Intake
+
+- Before multi-issue or ambiguous implementation work, classify the request quickly instead of asking for a process choice.
+- Use a lightweight score: +2 for multiple user-visible issues, +2 for UI state/filters/tables/payments/stats/auth/data consistency, +2 for likely backend/API/data root cause, +2 for repeated patterns across modules, +2 for IDs/links/dates/payments/tokens/costs/analytics, +2 for multi-surface changes, +2 for browser/API/database verification, +3 for production/billing/permissions/security/destructive risk.
+- For scores 0-3, make a direct narrow fix.
+- For scores 4-6, keep a short inline task ledger with acceptance checks.
+- For scores 7+, run a full inline handoff: ledger, root-cause mapping, implementation, self-review, and verification.
+- For scores 11+, use subagents only if delegation or parallel work was explicitly authorized; otherwise execute the same workflow inline.
+- A task ledger should track `id`, `area`, `symptom`, `likely_layer`, `acceptance_check`, `status`, and `owner`.
+- Add sibling fixes only when discovery shows the same root cause or when they are required to make the requested behavior correct.
+
 ## Karpathy Coding Discipline
 
 - Think before coding: state meaningful assumptions, expose ambiguity, and name tradeoffs before committing to an approach.
