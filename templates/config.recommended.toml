@@ -78,12 +78,13 @@ default_tools_approval_mode = "approve"
 # [mcp_servers.postgres]
 # url = "http://127.0.0.1:9402/mcp"
 # bearer_token_env_var = "CODEX_MCP_BEARER"
-# default_tools_approval_mode = "prompt"
+# default_tools_approval_mode = "approve"
 #
 # Open Design source: https://github.com/nexu-io/open-design
 # [mcp_servers.open-design]
 # command = "node"
 # args = ["/path/to/open-design/apps/daemon/dist/cli.js", "mcp", "--daemon-url", "http://127.0.0.1:3501"]
+# default_tools_approval_mode = "approve"
 #
 # claude-mem source: https://github.com/thedotmack/claude-mem
 # Install/setup with:

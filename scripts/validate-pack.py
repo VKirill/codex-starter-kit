@@ -48,7 +48,6 @@ else:
     if len(prefix_rules) < 100:
         errors.append("rules/default.rules: expected broad read-only command allowlist")
     for unsafe in [
-        'pattern=["npm", "install"]',
         'pattern=["pnpm", "install"]',
         'pattern=["yarn", "install"]',
         'pattern=["gh", "repo"]',

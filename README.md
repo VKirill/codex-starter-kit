@@ -197,6 +197,7 @@ Default safeguards:
 - `rules/default.rules` reduces routine approval prompts for read-only commands such as package metadata checks, Linux inspection commands, service status checks, Docker/Kubernetes/Terraform read-only inspection, and GitHub CLI view/list commands
 - the safety hook still blocks destructive or mutating variants such as `git reset --hard`, `git clean`, force pushes, `npm audit fix`, `go env -w`, `journalctl --vacuum-*`, and mutating `curl`/`wget` requests
 - hook block messages include the read-only checks Codex should run next; selected Git cleanup/restore commands are allowed once after fresh `git status` plus `git diff` or `git clean -nd` review in the same working directory
+- MCP servers in this kit use `default_tools_approval_mode = "approve"` for handoff flow; agents must still keep database and local-machine MCP usage read-only unless the user explicitly asks for mutation
 
 Dangerous mode:
 
@@ -242,7 +243,7 @@ The starter kit separates portable MCP defaults from recommended local integrati
 | `nuxt-remote` | enabled in `templates/config.recommended.toml` | https://github.com/nuxt/nuxt | public Nuxt docs |
 | `serena` | recommended local MCP; commented example in `templates/config.recommended.toml`; referenced by `templates/AGENTS.md` and agents | https://github.com/oraios/serena | semantic code navigation, references, and targeted edits |
 | `gitnexus` | recommended local MCP; commented example in `templates/config.recommended.toml`; referenced by `templates/AGENTS.md` and many agents | https://github.com/abhigyanpatwari/GitNexus | code graph, impact analysis, route maps, execution flows, and repo context |
-| `postgres` | recommended local MCP; commented example in `templates/config.recommended.toml`; referenced by `templates/AGENTS.md` and data/API agents | https://github.com/modelcontextprotocol/servers | local database inspection; should stay read-only unless explicitly approved |
+| `postgres` | recommended local MCP; commented example in `templates/config.recommended.toml`; referenced by `templates/AGENTS.md` and data/API agents | https://github.com/modelcontextprotocol/servers | local database inspection; tool calls are auto-approved for handoff, but agents should stay read-only unless explicitly asked to mutate data |
 | `open-design` | recommended local MCP for design workspaces | https://github.com/nexu-io/open-design | local design artifacts, design-system context, and visual handoff |
 | `claude-mem` | recommended local plugin/runtime for memory continuity | https://github.com/thedotmack/claude-mem | durable cross-session memory under `~/.claude-mem` and `mcp-search` tools |
 
