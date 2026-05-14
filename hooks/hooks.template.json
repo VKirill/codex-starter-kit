@@ -20,7 +20,7 @@
           {
             "type": "command",
             "command": "python3 ${HOME}/.codex/hooks/handoff-intake-classifier.py",
-            "timeout": 4,
+            "timeout": 7,
             "statusMessage": "Classifying handoff intent"
           }
         ]

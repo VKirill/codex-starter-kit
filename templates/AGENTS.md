@@ -33,8 +33,8 @@ These instructions apply to every project unless a closer project `AGENTS.md` or
 - Use a lightweight score: +2 for multiple user-visible issues, +2 for UI state/filters/tables/payments/stats/auth/data consistency, +2 for likely backend/API/data root cause, +2 for repeated patterns across modules, +2 for IDs/links/dates/payments/tokens/costs/analytics, +2 for multi-surface changes, +2 for browser/API/database verification, +3 for production/billing/permissions/security/destructive risk.
 - For scores 0-3, make a direct narrow fix.
 - For scores 4-6, keep a short inline task ledger with acceptance checks.
-- For scores 7+, run a full inline handoff: ledger, root-cause mapping, implementation, self-review, and verification.
-- For scores 11+, use subagents only if delegation or parallel work was explicitly authorized; otherwise execute the same workflow inline.
+- For scores 7+, run a full handoff: ledger, root-cause mapping, implementation, self-review, and verification.
+- For scores 11+, prefer proactive subagent execution when the task has independent workstreams or requires implementation plus review/verification; execute inline only when the scope is small, blocked on one investigation, or the user explicitly asks for inline work.
 - A task ledger should track `id`, `area`, `symptom`, `likely_layer`, `acceptance_check`, `status`, and `owner`.
 - Add sibling fixes only when discovery shows the same root cause or when they are required to make the requested behavior correct.
 
@@ -79,9 +79,11 @@ These instructions apply to every project unless a closer project `AGENTS.md` or
 
 ## Subagents
 
-- Spawn subagents only when the user explicitly authorizes delegation, parallel work, or subagents.
-- If a plan or skill would benefit from subagents but the user did not explicitly authorize them, execute inline in the current session and mention that choice briefly; do not stop only to ask whether to use subagents.
+- Assume subagents are authorized for non-trivial implementation work unless the user explicitly asks for inline-only work.
+- Prefer proactive subagent execution when a task has 2+ independent areas, multiple bugs/features/screens/modules, implementation plus review/verification, broad GitNexus impact, or an approved plan with worker assignments.
+- Stay inline for questions, reviews, planning-only work, one-file/simple fixes, ambiguous dirty worktrees with overlapping write scopes, or when the next parent step is blocked on one investigation.
 - Delegate bounded, independent work that can proceed without blocking the parent's immediate next step.
+- Before spawning implementation subagents, define disjoint write scopes and keep parent ownership of integration.
 - Give each subagent a clear role, scope, ownership, expected output, and verification target.
 - Do not delegate overlapping write scopes to multiple agents.
 - Tell implementation agents they are not alone in the codebase and must not revert others' work.
@@ -91,10 +93,13 @@ These instructions apply to every project unless a closer project `AGENTS.md` or
 ## Planning And Superpowers
 
 - Use Superpowers when the task clearly matches a Superpowers workflow.
-- A user request such as "run this plan" authorizes inline plan execution, not subagent delegation by itself.
+- A user request such as "run this approved Superpowers plan" authorizes the plan's documented execution mode.
+- If an approved Superpowers plan contains `Execution Options`, worker assignments, or a subagent-driven-development recommendation, subagents are authorized according to that section unless the user explicitly asks for inline execution.
+- If the plan lacks worker assignments, execute inline or create a short worker split with disjoint write scopes before spawning agents.
 - For feature-scale work, use brainstorming before implementation.
 - For approved designs, create implementation plans with exact files, steps, tests, and verification.
 - Execute approved plans with focused implementation and review checkpoints.
+- For implementation plans, include review checkpoints after major sections and a final code-review/verification pass before reporting completion.
 - Use systematic debugging for bugs, regressions, failing tests, or unexpected behavior.
 - Use verification-before-completion before claiming work is done.
 - For small obvious fixes, keep ceremony minimal.

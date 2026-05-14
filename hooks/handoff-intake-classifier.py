@@ -568,6 +568,10 @@ def has_action_request(text: str) -> bool:
         r"\bобнов(и|ить)\b",
         r"\bперезапуст(и|ить)\b",
         r"\bперезапускай\b",
+        r"\bзапускай\b",
+        r"\bзапусти\b",
+        r"\bвыполняй\b",
+        r"\bвыполни\b",
         r"\bпочини\b",
         r"\bпочинить\b",
         r"\bпередел(ай|ать)\b",
@@ -613,7 +617,10 @@ def deterministic_classify(prompt: str) -> dict[str, Any]:
     multi_surface_words = (
         "дашборд",
         "crm",
-        "бот",
+        "telegram bot",
+        "бот_",
+        "бот-",
+        "бот ",
         "api",
         "бд",
         "база",
@@ -675,9 +682,13 @@ def deterministic_classify(prompt: str) -> dict[str, Any]:
         reasons.append("Superpowers requested")
 
     score = min(score, 15)
-    subagents_authorized = has_any(lower, ("сабагент", "subagent", "делег", "параллел", "parallel"))
+    explicit_subagents_requested = has_any(lower, ("сабагент", "subagent", "делег", "параллел", "parallel"))
+    superpowers_plan_requested = (
+        ("$superpowers" in lower or "superpowers" in lower)
+        and has_any(lower, ("план", "plan", "выполняй", "запускай", "приступай"))
+    )
 
-    if "$superpowers" in lower and "приступай к реализации" in lower:
+    if "$superpowers" in lower and has_any(lower, ("приступай к реализации", "запускай план", "выполняй план", "план в работу")):
         intent = "execute_approved_plan"
         should_edit = True
         should_plan = False
@@ -708,6 +719,10 @@ def deterministic_classify(prompt: str) -> dict[str, Any]:
         should_plan = score >= 7
 
     should_use_task_ledger = score >= 7 and intent not in {"question_only", "continue"}
+    subagents_authorized = explicit_subagents_requested or (
+        intent in {"implementation", "execute_approved_plan"}
+        and (score >= 9 or superpowers_plan_requested or should_use_task_ledger)
+    )
     confidence = 0.86
     if question_mark and action_requested:
         confidence = 0.68
@@ -885,8 +900,12 @@ def llm_classify(prompt: str, hook_payload: dict[str, Any]) -> dict[str, Any] | 
         "Return JSON only: a compact English structured object that matches the provided schema. "
         "Do not include Markdown fences or explanatory prose outside JSON. "
         "Intent must be one of question_only, analysis, planning, implementation, continue, execute_approved_plan. "
-        "Subagents are authorized only when the user explicitly mentions subagents, "
-        "delegation, or parallel work. "
+        "Subagents are authorized for non-trivial implementation work by default unless "
+        "the user explicitly asks for inline-only work. Prefer subagents when the task "
+        "has 2+ independent areas, multiple bugs/features/screens/modules, implementation "
+        "plus review/verification, broad impact, or an approved Superpowers plan with "
+        "worker assignments. Keep question_only, planning-only, one-file/simple fixes, "
+        "and ambiguous overlapping write scopes inline. "
         "If the prompt asks to commit, push, tag, create a GitHub release, publish release notes, or deploy, "
         "classify as implementation, set should_edit=true, should_plan=false, should_use_task_ledger=true, "
         "requires_release_flow=true, and include release verification commands. "
@@ -1170,7 +1189,10 @@ def context_from_classification(classification: dict[str, Any], source: str, pro
     elif intent == "analysis":
         guidance.append("Policy: investigate enough to answer or plan; avoid edits unless the prompt clearly asks for a fix.")
     elif intent in {"implementation", "execute_approved_plan"}:
-        guidance.append("Policy: proceed inline; build a task ledger for multi-step work; verify before completion.")
+        if subagents:
+            guidance.append("Policy: proceed with handoff execution; use subagents proactively for independent workstreams, keep parent integration ownership, and verify before completion.")
+        else:
+            guidance.append("Policy: proceed inline; build a task ledger for multi-step work; verify before completion.")
         if should_plan:
             guidance.append("Before first edit: write a short plan with affected surfaces, risks, and verification commands.")
     elif intent == "continue":
@@ -1197,8 +1219,10 @@ def context_from_classification(classification: dict[str, Any], source: str, pro
         guidance.append(repo_profile)
     if source.startswith("llm") and previous_context_for_prompt(prompt, payload):
         guidance.append("Follow-up context: previous local prompt/context was included for resolving short references; keep scope anchored to the current user request.")
-    if not subagents:
-        guidance.append("No subagents unless explicitly authorized.")
+    if subagents:
+        guidance.append("Subagents authorized: define disjoint write scopes before spawning and review/integrate results before completion.")
+    elif intent in {"question_only", "analysis", "planning"}:
+        guidance.append("Subagents not recommended for this prompt.")
     return " ".join(guidance)
 
 

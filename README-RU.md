@@ -206,7 +206,7 @@ Installer работает в baseline mode: он делает этот starter 
 - сообщения hook'а сразу подсказывают Codex, какие read-only проверки выполнить дальше; часть Git cleanup/restore команд проходит один раз после свежей проверки `git status` плюс `git diff` или `git clean -nd` в той же рабочей директории
 - `hooks/handoff-post-tool-use.py` добавляет follow-up context после package installs, failed shell commands, `git diff` и verification commands, чтобы Codex проверял diff/tests, связывал результат с task ledger или исправлял конкретную ошибку перед повтором команды
 - MCP servers в starter kit используют `default_tools_approval_mode = "approve"` для handoff flow; database и local-machine MCP всё равно должны использоваться read-only, если пользователь явно не просил mutation
-- `templates/AGENTS.md` содержит handoff intake scoring и task-ledger правила. "Запусти/выполни план" трактуется как inline execution; subagents используются только при явном разрешении на delegation, parallel work или subagents.
+- `templates/AGENTS.md` содержит handoff intake scoring и task-ledger правила. Для нетривиальных implementation tasks теперь по умолчанию предполагается proactive subagent authorization, а вопросы, planning-only задачи, one-file fixes и явные inline-only requests остаются inline. Одобренные Superpowers plans могут автоматически использовать описанный worker split, а implementation plans должны включать review checkpoints после секций и финальный code-review/verification pass.
 
 Опциональная классификация prompts и LLM fallback:
 

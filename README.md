@@ -206,7 +206,7 @@ Default safeguards:
 - hook block messages include the read-only checks Codex should run next; selected Git cleanup/restore commands are allowed once after fresh `git status` plus `git diff` or `git clean -nd` review in the same working directory
 - `hooks/handoff-post-tool-use.py` adds follow-up context after package installs, failed shell commands, `git diff`, and verification commands so Codex checks diffs/tests, maps results back to the task ledger, or fixes the concrete failure before repeating work
 - MCP servers in this kit use `default_tools_approval_mode = "approve"` for handoff flow; agents must still keep database and local-machine MCP usage read-only unless the user explicitly asks for mutation
-- `templates/AGENTS.md` includes handoff intake scoring and task-ledger rules. It treats "run this plan" as inline execution; subagents are used only when the user explicitly authorizes delegation, parallel work, or subagents.
+- `templates/AGENTS.md` includes handoff intake scoring and task-ledger rules. Non-trivial implementation work now assumes proactive subagent authorization by default, while questions, planning-only work, one-file fixes, and explicit inline-only requests stay inline. Approved Superpowers plans may use their documented worker split automatically, and implementation plans should include section review checkpoints plus a final code-review/verification pass.
 
 Optional prompt classification and LLM fallback:
 
