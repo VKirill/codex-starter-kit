@@ -29,6 +29,59 @@ MAX_BRIEF_CHARS = 1200
 MAX_REPO_PROFILE_CHARS = 950
 MAX_PREVIOUS_CONTEXT_CHARS = 1200
 MAX_STATE_SESSIONS = 30
+INTENTS = ("question_only", "analysis", "planning", "implementation", "continue", "execute_approved_plan")
+
+
+CLASSIFIER_SCHEMA: dict[str, Any] = {
+    "type": "object",
+    "additionalProperties": False,
+    "required": [
+        "intent",
+        "should_edit",
+        "should_plan",
+        "should_use_task_ledger",
+        "subagents_authorized",
+        "requires_worktree_gate",
+        "requires_release_flow",
+        "requires_gitnexus_impact",
+        "handoff_score_0_15",
+        "confidence_0_1",
+        "reason",
+        "task_brief",
+        "architecture_terms",
+        "verification_commands",
+        "policy_notes",
+    ],
+    "properties": {
+        "intent": {"type": "string", "enum": list(INTENTS)},
+        "should_edit": {"type": "boolean"},
+        "should_plan": {"type": "boolean"},
+        "should_use_task_ledger": {"type": "boolean"},
+        "subagents_authorized": {"type": "boolean"},
+        "requires_worktree_gate": {"type": "boolean"},
+        "requires_release_flow": {"type": "boolean"},
+        "requires_gitnexus_impact": {"type": "boolean"},
+        "handoff_score_0_15": {"type": "integer", "minimum": 0, "maximum": 15},
+        "confidence_0_1": {"type": "number", "minimum": 0, "maximum": 1},
+        "reason": {"type": "string"},
+        "task_brief": {"type": "string"},
+        "architecture_terms": {
+            "type": "array",
+            "items": {"type": "string"},
+            "maxItems": 10,
+        },
+        "verification_commands": {
+            "type": "array",
+            "items": {"type": "string"},
+            "maxItems": 8,
+        },
+        "policy_notes": {
+            "type": "array",
+            "items": {"type": "string"},
+            "maxItems": 8,
+        },
+    },
+}
 
 
 ARCHITECTURE_DEPENDENCIES: dict[str, tuple[str, str]] = {
@@ -369,13 +422,25 @@ def state_hash_key(scope: str) -> str:
 def load_state() -> dict[str, Any]:
     override = setting("HANDOFF_CLASSIFIER_STATE_PATH")
     paths = [Path(override)] if override else [PRIVATE_STATE_PATH, MEMORY_STATE_PATH]
+    merged_sessions: dict[str, Any] = {}
     for path in paths:
         try:
             payload = json.loads(path.read_text(encoding="utf-8"))
         except (OSError, json.JSONDecodeError):
             continue
-        return payload if isinstance(payload, dict) else {"sessions": {}}
-    return {"sessions": {}}
+        if not isinstance(payload, dict):
+            continue
+        sessions = payload.get("sessions")
+        if not isinstance(sessions, dict):
+            continue
+        for key, entry in sessions.items():
+            if not isinstance(entry, dict):
+                continue
+            existing = merged_sessions.get(key)
+            existing_time = existing.get("updated_at", 0) if isinstance(existing, dict) else 0
+            if float(entry.get("updated_at", 0) or 0) >= float(existing_time or 0):
+                merged_sessions[key] = entry
+    return {"sessions": merged_sessions}
 
 
 def save_state(state: dict[str, Any]) -> None:
@@ -425,39 +490,73 @@ def previous_context_for_prompt(prompt: str, payload: dict[str, Any]) -> str:
     if not isinstance(entry, dict):
         return ""
     previous_prompt = str(entry.get("last_prompt", "") or "").strip()
+    previous_intent = str(entry.get("last_intent", "") or "").strip()
+    previous_flags = str(entry.get("last_flags", "") or "").strip()
+    previous_brief = str(entry.get("last_task_brief", "") or "").strip()
+    previous_terms = str(entry.get("last_terms", "") or "").strip()
     previous_context = str(entry.get("last_context", "") or "").strip()
-    if not previous_prompt and not previous_context:
+    if not any((previous_prompt, previous_intent, previous_flags, previous_brief, previous_terms, previous_context)):
         return ""
 
     parts = ["Previous local hook context for this session/repo."]
     if previous_prompt:
         parts.append("Previous user prompt: " + compact_text(redact_sensitive(previous_prompt), 500))
-    if previous_context:
+    if previous_intent:
+        parts.append("Previous intent: " + previous_intent)
+    if previous_flags:
+        parts.append("Previous flags: " + previous_flags)
+    if previous_brief:
+        parts.append("Previous task brief: " + compact_text(redact_sensitive(previous_brief), 650))
+    elif previous_context:
         parts.append("Previous classifier context: " + compact_text(redact_sensitive(previous_context), 650))
+    if previous_terms:
+        parts.append("Previous terms: " + compact_text(redact_sensitive(previous_terms), 240))
     parts.append("Use this only to resolve follow-up references like 'доработай', 'ещё', 'тогда', or 'сделай так'. Do not broaden scope beyond the current user prompt.")
     return compact_text(" ".join(parts), MAX_PREVIOUS_CONTEXT_CHARS)
 
 
-def update_state(payload: dict[str, Any], prompt: str, context: str) -> None:
+def update_state(payload: dict[str, Any], prompt: str, context: str, classification: dict[str, Any]) -> None:
     state = load_state()
     sessions = state.get("sessions")
     if not isinstance(sessions, dict):
         sessions = {}
         state["sessions"] = sessions
+    terms = classification.get("architecture_terms", classification.get("architecture_focus_terms", []))
+    if not isinstance(terms, list):
+        terms = []
+    flags = (
+        f"edit={bool_text(bool(classification.get('should_edit', False)))}, "
+        f"plan={bool_text(bool(classification.get('should_plan', False)))}, "
+        f"ledger={bool_text(bool(classification.get('should_use_task_ledger', False)))}, "
+        f"release_flow={bool_text(bool(classification.get('requires_release_flow', False)))}, "
+        f"worktree_gate={bool_text(bool(classification.get('requires_worktree_gate', False)))}"
+    )
     sessions[state_hash_key(state_scope_key(payload))] = {
         "updated_at": time.time(),
         "last_prompt": compact_text(redact_sensitive(prompt), 1600),
-        "last_context": compact_text(redact_sensitive(context), 1800),
+        "last_intent": str(classification.get("intent", "")),
+        "last_flags": flags,
+        "last_task_brief": compact_text(
+            redact_sensitive(str(classification.get("task_brief", classification.get("normalized_task_brief", "")) or "")),
+            1200,
+        ),
+        "last_terms": compact_text(", ".join(str(term) for term in terms if str(term).strip()), 500),
+        "last_context": compact_text(redact_sensitive(context), 900),
     }
     save_state(state)
 
 
 def llm_input_from_prompt(prompt: str, payload: dict[str, Any]) -> str:
     previous_context = previous_context_for_prompt(prompt, payload)
+    repo_profile = repo_profile_from_payload(payload)
     current = "Current user prompt:\n" + normalize_prompt(prompt)
+    parts: list[str] = []
     if previous_context:
-        return previous_context + "\n\n" + current
-    return normalize_prompt(prompt)
+        parts.append(previous_context)
+    if repo_profile:
+        parts.append("Current deterministic repo profile:\n" + repo_profile)
+    parts.append(current)
+    return "\n\n".join(parts)
 
 
 def has_action_request(text: str) -> bool:
@@ -639,14 +738,115 @@ def architecture_grade_requested(prompt: str, classification: dict[str, Any]) ->
     return False
 
 
+def release_flow_requested(prompt: str) -> bool:
+    lower = prompt.lower()
+    return bool(
+        re.search(r"\b(push|release|tag|publish|deploy)\b", lower)
+        or has_any(lower, ("пуш", "пушь", "запуш", "релиз", "тег", "опублику", "задеплой", "деплой"))
+    )
+
+
+def code_change_requested(prompt: str) -> bool:
+    lower = prompt.lower()
+    return bool(
+        re.search(r"\b(implement|fix|refactor|change|edit|update code|modify)\b", lower)
+        or has_any(lower, ("исправ", "почини", "реализ", "передел", "доработ", "измени код", "рефактор"))
+    )
+
+
+def safe_verification_commands(commands: list[Any]) -> list[str]:
+    safe: list[str] = []
+    blocked = ("--force", "force-with-lease", " reset --hard", " clean -", " rm ", "sudo ", "reboot", "shutdown")
+    for command in commands:
+        text = compact_text(str(command), 120)
+        lower = f" {text.lower()} "
+        if any(token in lower for token in blocked):
+            continue
+        if "||" in text or "&&" in text or ";" in text:
+            continue
+        if text.strip():
+            safe.append(text)
+    return safe[:8]
+
+
+def normalized_classification(raw: dict[str, Any], prompt: str) -> dict[str, Any]:
+    lower = prompt.lower()
+    intent = str(raw.get("intent", "analysis"))
+    if intent not in INTENTS:
+        intent = "analysis"
+
+    score_raw = raw.get("handoff_score_0_15", raw.get("score", 0))
+    try:
+        score = max(0, min(15, int(score_raw)))
+    except (TypeError, ValueError):
+        score = 0
+
+    confidence_raw = raw.get("confidence_0_1", raw.get("confidence", 0))
+    try:
+        confidence = max(0.0, min(1.0, float(confidence_raw)))
+    except (TypeError, ValueError):
+        confidence = 0.0
+
+    release_flow = bool(raw.get("requires_release_flow", False)) or release_flow_requested(prompt)
+    should_edit = bool(raw.get("should_edit", False))
+    should_plan = bool(raw.get("should_plan", False))
+    task_ledger = bool(raw.get("should_use_task_ledger", False))
+
+    if release_flow and intent != "question_only":
+        intent = "implementation"
+    if release_flow:
+        should_edit = True
+        should_plan = False
+        task_ledger = True
+        score = max(score, 11)
+        confidence = max(confidence, 0.82)
+    gitnexus_impact = bool(raw.get("requires_gitnexus_impact", False))
+    if release_flow and not code_change_requested(prompt):
+        gitnexus_impact = False
+
+    if has_action_request(lower) and intent == "analysis":
+        intent = "implementation"
+        should_edit = True
+    if intent in {"question_only", "analysis", "planning", "continue"} and not should_edit:
+        should_edit = False
+
+    terms = raw.get("architecture_terms", raw.get("architecture_focus_terms", []))
+    if not isinstance(terms, list):
+        terms = []
+    verification = raw.get("verification_commands", [])
+    if not isinstance(verification, list):
+        verification = []
+    policy_notes = raw.get("policy_notes", [])
+    if not isinstance(policy_notes, list):
+        policy_notes = []
+
+    return {
+        "intent": intent,
+        "should_edit": should_edit,
+        "should_plan": should_plan,
+        "should_use_task_ledger": task_ledger,
+        "subagents_authorized": bool(raw.get("subagents_authorized", False)),
+        "requires_worktree_gate": bool(raw.get("requires_worktree_gate", False)),
+        "requires_release_flow": release_flow,
+        "requires_gitnexus_impact": gitnexus_impact,
+        "handoff_score_0_15": score,
+        "confidence_0_1": confidence,
+        "reason": compact_text(str(raw.get("reason", raw.get("one_sentence_reason", "")) or ""), 280),
+        "task_brief": compact_text(str(raw.get("task_brief", raw.get("normalized_task_brief", "")) or ""), MAX_BRIEF_CHARS),
+        "architecture_terms": [compact_text(str(term), 80) for term in terms if str(term).strip()][:10],
+        "verification_commands": safe_verification_commands(verification),
+        "policy_notes": [compact_text(str(note), 160) for note in policy_notes if str(note).strip()][:8],
+    }
+
+
 def should_call_llm(classification: dict[str, Any], prompt: str) -> bool:
     mode = setting("HANDOFF_CLASSIFIER_LLM", "auto").lower()
     if mode in {"0", "false", "off", "none", "no"}:
         return False
-    if mode in {"1", "true", "on", "always", "yes"}:
-        return True
     if not setting("OPENAI_API_KEY"):
         return False
+    if mode in {"1", "true", "on", "always", "yes", "auto"}:
+        return True
     if follow_up_context_requested(prompt):
         return True
     if float(classification.get("confidence", 1.0)) < 0.78:
@@ -676,23 +876,23 @@ def llm_classify(prompt: str, hook_payload: dict[str, Any]) -> dict[str, Any] | 
         return None
     model = setting("HANDOFF_CLASSIFIER_MODEL", DEFAULT_MODEL)
     try:
-        timeout = float(setting("HANDOFF_CLASSIFIER_TIMEOUT", "4.0"))
+        timeout = float(setting("HANDOFF_CLASSIFIER_TIMEOUT", "6.0"))
     except ValueError:
-        timeout = 4.0
+        timeout = 6.0
 
     instructions = (
         "Classify a Russian user prompt for a Codex handoff/intake hook. "
-        "Return only compact JSON with keys: intent, should_edit, should_plan, "
-        "should_use_task_ledger, handoff_score_0_15, subagents_authorized, "
-        "confidence_0_1, one_sentence_reason, normalized_task_brief, "
-        "architecture_focus_terms. "
-        "Intent must be one of question_only, analysis, planning, implementation, "
-        "continue, execute_approved_plan. "
+        "Return JSON only: a compact English structured object that matches the provided schema. "
+        "Do not include Markdown fences or explanatory prose outside JSON. "
+        "Intent must be one of question_only, analysis, planning, implementation, continue, execute_approved_plan. "
         "Subagents are authorized only when the user explicitly mentions subagents, "
         "delegation, or parallel work. "
+        "If the prompt asks to commit, push, tag, create a GitHub release, publish release notes, or deploy, "
+        "classify as implementation, set should_edit=true, should_plan=false, should_use_task_ledger=true, "
+        "requires_release_flow=true, and include release verification commands. "
         "When the prompt asks for implementation, fixes, refactoring, architecture, "
         "production-grade work, removal of legacy code, or 'do it properly', "
-        "write normalized_task_brief as a professional engineering brief that preserves "
+        "write task_brief as a professional engineering brief that preserves "
         "the user's scope and uses precise software-engineering terms. Prefer concrete "
         "process and architecture constraints over generic phrases like 'best practices'. "
         "Mention root-cause analysis, architecture boundaries, typed contracts, canonical "
@@ -710,6 +910,15 @@ def llm_classify(prompt: str, hook_payload: dict[str, Any]) -> dict[str, Any] | 
         "input": llm_input_from_prompt(prompt, hook_payload),
         "max_output_tokens": 420,
         "store": False,
+        "text": {
+            "format": {
+                "type": "json_schema",
+                "name": "handoff_intake_classification",
+                "description": "Strict handoff intake classification and policy flags for a Codex hook.",
+                "strict": True,
+                "schema": CLASSIFIER_SCHEMA,
+            }
+        },
     }
     data = json.dumps(request_payload, ensure_ascii=False).encode("utf-8")
     req = request.Request(
@@ -724,7 +933,28 @@ def llm_classify(prompt: str, hook_payload: dict[str, Any]) -> dict[str, Any] | 
     try:
         with request.urlopen(req, timeout=timeout) as response:
             body = response.read().decode("utf-8", errors="replace")
-    except (OSError, error.HTTPError, error.URLError, TimeoutError):
+        structured_output = True
+    except error.HTTPError as exc:
+        if exc.code not in {400, 404, 422}:
+            return None
+        request_payload.pop("text", None)
+        data = json.dumps(request_payload, ensure_ascii=False).encode("utf-8")
+        req = request.Request(
+            API_URL,
+            data=data,
+            headers={
+                "Authorization": f"Bearer {api_key}",
+                "Content-Type": "application/json",
+            },
+            method="POST",
+        )
+        try:
+            with request.urlopen(req, timeout=timeout) as response:
+                body = response.read().decode("utf-8", errors="replace")
+            structured_output = False
+        except (OSError, error.HTTPError, error.URLError, TimeoutError):
+            return None
+    except (OSError, error.URLError, TimeoutError):
         return None
 
     try:
@@ -738,17 +968,20 @@ def llm_classify(prompt: str, hook_payload: dict[str, Any]) -> dict[str, Any] | 
         return None
     if not isinstance(result, dict):
         return None
-    return result
+    normalized = normalized_classification(result, prompt)
+    normalized["_structured_output"] = structured_output
+    return normalized
 
 
 def merged_classification(prompt: str, payload: dict[str, Any]) -> tuple[dict[str, Any], str]:
-    base = deterministic_classify(prompt)
+    base = normalized_classification(deterministic_classify(prompt), prompt)
     if should_call_llm(base, prompt):
         start = time.monotonic()
         llm = llm_classify(prompt, payload)
         if llm:
             elapsed_ms = int((time.monotonic() - start) * 1000)
-            return llm, f"llm:{elapsed_ms}ms"
+            source_kind = "llm_schema" if llm.pop("_structured_output", False) else "llm_json"
+            return llm, f"{source_kind}:{elapsed_ms}ms"
     return base, "deterministic"
 
 
@@ -897,6 +1130,10 @@ def deterministic_normalized_brief(prompt: str, classification: dict[str, Any]) 
     return compact_text(brief, MAX_BRIEF_CHARS)
 
 
+def bool_text(value: bool) -> str:
+    return "true" if value else "false"
+
+
 def context_from_classification(classification: dict[str, Any], source: str, prompt: str, payload: dict[str, Any]) -> str:
     intent = str(classification.get("intent", "analysis"))
     score = classification.get("handoff_score_0_15", classification.get("score", 0))
@@ -905,30 +1142,41 @@ def context_from_classification(classification: dict[str, Any], source: str, pro
     should_plan = bool(classification.get("should_plan", False))
     should_ledger = bool(classification.get("should_use_task_ledger", False))
     subagents = bool(classification.get("subagents_authorized", False))
-    reason = str(classification.get("one_sentence_reason", classification.get("reason", "")))
-    normalized_brief = str(classification.get("normalized_task_brief", "") or "").strip()
-    architecture_terms = classification.get("architecture_focus_terms", [])
+    worktree_gate = bool(classification.get("requires_worktree_gate", False))
+    release_flow = bool(classification.get("requires_release_flow", False))
+    gitnexus_impact = bool(classification.get("requires_gitnexus_impact", False))
+    repo_profile = repo_profile_from_payload(payload)
+    if should_edit and code_change_requested(prompt) and "GitNexus impact analysis" in repo_profile:
+        gitnexus_impact = True
+    reason = str(classification.get("reason", classification.get("one_sentence_reason", "")))
+    task_brief = str(classification.get("task_brief", classification.get("normalized_task_brief", "")) or "").strip()
+    architecture_terms = classification.get("architecture_terms", classification.get("architecture_focus_terms", []))
+    verification_commands = classification.get("verification_commands", [])
+    policy_notes = classification.get("policy_notes", [])
 
     guidance = [
-        f"Handoff intake classifier ({source}): intent={intent}, score={score}, confidence={confidence}.",
-        f"Flags: should_edit={str(should_edit).lower()}, should_plan={str(should_plan).lower()}, task_ledger={str(should_ledger).lower()}, subagents_authorized={str(subagents).lower()}.",
+        f"Handoff intake ({source}): intent={intent}, score={score}, confidence={confidence}.",
+        "Flags: "
+        f"edit={bool_text(should_edit)}, plan={bool_text(should_plan)}, ledger={bool_text(should_ledger)}, "
+        f"subagents={bool_text(subagents)}, worktree_gate={bool_text(worktree_gate)}, "
+        f"release_flow={bool_text(release_flow)}, gitnexus_impact={bool_text(gitnexus_impact)}.",
     ]
     if reason:
         guidance.append(f"Reason: {reason}")
     if intent == "question_only":
-        guidance.append("Answer the question directly. Do not edit files or run implementation commands unless the user explicitly asks for work.")
+        guidance.append("Policy: answer directly; do not edit files or run implementation commands unless explicitly asked.")
     elif intent == "planning":
-        guidance.append("Do discovery and produce a plan. Do not implement yet unless the user explicitly asks for implementation.")
+        guidance.append("Policy: do discovery and produce a plan; do not implement until explicitly asked.")
     elif intent == "analysis":
-        guidance.append("Investigate enough to answer or plan. Avoid edits unless the prompt clearly asks for a fix.")
+        guidance.append("Policy: investigate enough to answer or plan; avoid edits unless the prompt clearly asks for a fix.")
     elif intent in {"implementation", "execute_approved_plan"}:
-        guidance.append("Proceed with implementation inline. Build a task ledger for multi-issue work and verify before completion.")
+        guidance.append("Policy: proceed inline; build a task ledger for multi-step work; verify before completion.")
         if should_plan:
-            guidance.append("Before the first edit, produce a short implementation plan with affected surfaces, architecture risks, and verification commands.")
+            guidance.append("Before first edit: write a short plan with affected surfaces, risks, and verification commands.")
     elif intent == "continue":
-        guidance.append("Continue the prior task using the current context; first recover the last known state if needed.")
-    if normalized_brief:
-        guidance.append("Normalized task brief: " + compact_text(normalized_brief, MAX_BRIEF_CHARS))
+        guidance.append("Policy: continue prior work; recover last known state first if needed.")
+    if task_brief:
+        guidance.append("Task brief: " + compact_text(task_brief, MAX_BRIEF_CHARS))
     else:
         deterministic_brief = deterministic_normalized_brief(prompt, classification)
         if deterministic_brief:
@@ -936,14 +1184,21 @@ def context_from_classification(classification: dict[str, Any], source: str, pro
     if isinstance(architecture_terms, list) and architecture_terms:
         terms = ", ".join(str(term).strip() for term in architecture_terms if str(term).strip())
         if terms:
-            guidance.append("Architecture focus terms: " + compact_text(terms, 240) + ".")
-    repo_profile = repo_profile_from_payload(payload)
+            guidance.append("Terms: " + compact_text(terms, 240) + ".")
+    if isinstance(verification_commands, list) and verification_commands:
+        commands = "; ".join(str(command).strip() for command in verification_commands if str(command).strip())
+        if commands:
+            guidance.append("Suggested verification: " + compact_text(commands, 360) + ".")
+    if isinstance(policy_notes, list) and policy_notes:
+        notes = "; ".join(str(note).strip() for note in policy_notes if str(note).strip())
+        if notes:
+            guidance.append("Policy notes: " + compact_text(notes, 360) + ".")
     if repo_profile:
         guidance.append(repo_profile)
     if source.startswith("llm") and previous_context_for_prompt(prompt, payload):
         guidance.append("Follow-up context: previous local prompt/context was included for resolving short references; keep scope anchored to the current user request.")
     if not subagents:
-        guidance.append("Do not spawn subagents unless the user explicitly authorizes delegation, parallel work, or subagents.")
+        guidance.append("No subagents unless explicitly authorized.")
     return " ".join(guidance)
 
 
@@ -964,7 +1219,7 @@ def main() -> int:
         classification, source = merged_classification(prompt, payload)
         context = context_from_classification(classification, source, prompt, payload)
         emit_context(context)
-        update_state(payload, prompt, context)
+        update_state(payload, prompt, context, classification)
     except Exception:
         return 0
     return 0

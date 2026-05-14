@@ -196,7 +196,8 @@ Default safeguards:
 - `codex plugin marketplace upgrade` and `codex mcp list` run only when `codex` is available in `PATH`
 - `rules/default.rules` reduces routine approval prompts for read-only commands such as package metadata checks, Linux inspection commands, service status checks, Docker/Kubernetes/Terraform read-only inspection, and GitHub CLI view/list commands
 - npm workspace forms (`npm --workspace`, `npm -w`, `npm --workspaces`, `npm --prefix`) and pnpm workspace forms (`pnpm --filter`, `pnpm -F`, `pnpm --recursive`, `pnpm -r`, `pnpm --dir`, `pnpm -C`) are approved for handoff development workflows
-- `hooks/handoff-intake-classifier.py` classifies user prompts on `UserPromptSubmit` only when `~/.codex/private/handoff-classifier.env` exists. With that private file present, it works without network in deterministic mode and can optionally call a small model for ambiguous prompts when `OPENAI_API_KEY` and `HANDOFF_CLASSIFIER_MODEL` are set there. For implementation prompts, it also emits a normalized engineering brief with professional architecture vocabulary and, when Codex provides a working directory, a compact repo profile from root and nearest-workspace `package.json`, `AGENTS.md`, runtime engines, common monorepo layout signals, and an allowlist of architecture-significant dependency versions such as frameworks, build tools, test tools, ORMs, databases, queues, contract libraries, UI kits, and observability libraries.
+- `hooks/handoff-intake-classifier.py` classifies user prompts on `UserPromptSubmit` only when `~/.codex/private/handoff-classifier.env` exists. With that private file present, it works offline with deterministic fallback and uses the LLM as the primary classifier when `OPENAI_API_KEY` and `HANDOFF_CLASSIFIER_MODEL` are set. The LLM path requests strict Responses API Structured Outputs (`text.format` JSON Schema) and normalizes typed booleans such as `should_edit`, `requires_release_flow`, `requires_worktree_gate`, and `requires_gitnexus_impact`; plain JSON parsing remains only as a compatibility fallback. The rendered hook context is compact English.
+- For implementation prompts, the classifier emits a normalized engineering brief with professional architecture vocabulary and, when Codex provides a working directory, a compact repo profile from root and nearest-workspace `package.json`, `AGENTS.md`, runtime engines, common monorepo layout signals, and an allowlist of architecture-significant dependency versions such as frameworks, build tools, test tools, ORMs, databases, queues, contract libraries, UI kits, and observability libraries.
 - Short follow-up prompts such as `доработай`, `продолжай`, `ещё`, `тогда`, or `сделай так` can use the previous local hook context before calling the LLM. State is stored in `~/.codex/private/handoff-classifier-state.json` when writable, otherwise `~/.codex/memories/handoff-classifier-state.json`; override with `HANDOFF_CLASSIFIER_STATE_PATH`. The state is capped, stored with `0600` permissions, scoped by session/repo when possible, and redacts common API keys/tokens before reuse.
 - `hooks/handoff-permission-request.py` auto-approves safe PermissionRequest prompts for MCP calls and commands already covered by `rules/default.rules`, which helps current sessions continue when normal rules were not reloaded yet
 - handoff service controls are approved for common app/process managers: `pm2 start|stop|restart|reload`, `supervisorctl start|stop|restart`, `systemctl start|stop|restart|reload`, `service <name> restart`, `docker compose restart`, `docker compose up -d`, direct `docker|podman restart`, and web-server reload commands for nginx/Angie/Apache/Caddy
@@ -212,11 +213,11 @@ Optional prompt classification and LLM fallback:
 ```bash
 mkdir -p ~/.codex/private
 chmod 700 ~/.codex/private
-printf 'OPENAI_API_KEY=...\nHANDOFF_CLASSIFIER_MODEL=gpt-5.4-nano\nHANDOFF_CLASSIFIER_LLM=auto\nHANDOFF_CLASSIFIER_TIMEOUT=4.0\n' > ~/.codex/private/handoff-classifier.env
+printf 'OPENAI_API_KEY=...\nHANDOFF_CLASSIFIER_MODEL=gpt-5.4-nano\nHANDOFF_CLASSIFIER_LLM=auto\nHANDOFF_CLASSIFIER_TIMEOUT=6.0\n' > ~/.codex/private/handoff-classifier.env
 chmod 600 ~/.codex/private/handoff-classifier.env
 ```
 
-Use `HANDOFF_CLASSIFIER_LLM=always` when you want every prompt rewritten into a richer professional task brief. `auto` keeps routine prompts deterministic and calls the model for ambiguous mixed question/action prompts.
+Use `HANDOFF_CLASSIFIER_LLM=off` for deterministic-only offline mode. `auto` and `always` both use the model whenever credentials are available; deterministic classification remains the fallback for API errors, timeouts, or unsupported structured output.
 
 Dangerous mode:
 
