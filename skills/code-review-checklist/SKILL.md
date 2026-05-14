@@ -45,6 +45,39 @@ Loaded automatically when its description matches the active task. The body belo
 6. **Размер файлов**: проверь по `file-size-limits` skill
 7. **Verdict**: `approved: true/false`
 
+## Claude Companion для второго ревью
+
+Если изменение широкое, рискованное или затрагивает security/data/billing/release readiness, запусти Claude Companion как независимое advisory-review, если он доступен. Не используй его для мелких one-file fixes и чисто стилистических правок.
+
+Типовые команды:
+
+```bash
+python3 plugins/claude-companion/scripts/run_review.py \
+  --mode diff-review \
+  --prompt "Review the current diff for bugs, regressions, missing tests, unsafe assumptions, and scope drift." \
+  --mcp-profile code
+
+python3 plugins/claude-companion/scripts/run_review.py \
+  --mode security-review \
+  --prompt "Review the current diff for security risk, unsafe inputs, secrets exposure, and auth/permission regressions." \
+  --mcp-profile code
+
+python3 plugins/claude-companion/scripts/run_review.py \
+  --mode data-consistency-review \
+  --prompt "Review the current diff for data consistency, identity mapping, migration, and query/filter regressions." \
+  --mcp-profile code
+```
+
+Если текущий diff содержит unrelated user changes, secrets risk или noisy generated files, используй `--no-diff` и передай только явный review pack через `--input`.
+
+После ответа Claude:
+
+1. Прочитай `outbox_path`.
+2. Раздели findings на `accept`, `partially_accept`, `reject`, `needs_user_decision`.
+3. Не принимай рекомендации автоматически. Проверяй их по коду, задаче и AGENTS.md.
+4. Исправь принятые P0/P1 findings и заново запусти релевантные проверки.
+5. В финальном ответе упомяни отклонённые существенные findings только если они влияют на риск.
+
 ## Принципы оценки
 
 - Фокусируйся на реальном влиянии: безопасность → достижение цели → корректность → стиль, потому что этот порядок отражает приоритет для пользователей

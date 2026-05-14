@@ -26,6 +26,8 @@ Bridge нужен, чтобы получить эту проверку без `c
 
 Текущая реализация находится в `plugins/claude-companion`. Runner использует adaptive tmux monitoring: ждёт появления `outbox/<request_id>.md`, проверяет живость tmux-сессии, отслеживает активность pane и завершает работу по session exit, idle timeout или абсолютному safety cap. Для ручных глубоких аудитов доступен режим `--wait-forever` с отдельным `--idle-timeout`.
 
+Runner также создаёт runtime-only MCP profile для каждой проверки. Временный файл `<bridge-root>/runtime/<request_id>/mcp-config.json` передаётся в Claude через `--mcp-config ... --strict-mcp-config`, поэтому companion-сессия не наследует весь пользовательский или проектный набор MCP. Профиль `auto` включает Serena и GitNexus для plan/code/data/security/release review, Context7 добавляется только для documentation-oriented режимов. Если нужный MCP недоступен, это явно попадает в prompt как missing evidence, а review продолжается на переданном context pack.
+
 ## 3. Нецели
 
 Первая версия не должна:

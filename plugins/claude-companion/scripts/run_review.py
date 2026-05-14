@@ -7,6 +7,7 @@ import os
 import re
 import shlex
 import shutil
+import socket
 import subprocess
 import sys
 import time
@@ -85,6 +86,14 @@ class MonitorResult:
     tmux_state: str
 
 
+@dataclass(frozen=True)
+class McpRuntime:
+    profile: str
+    config_path: Path
+    enabled: tuple[str, ...]
+    unavailable: tuple[str, ...]
+
+
 def run(args: list[str], cwd: Path, *, check: bool = True, env: dict[str, str] | None = None) -> subprocess.CompletedProcess[str]:
     return subprocess.run(args, cwd=cwd, env=env, text=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, check=check)
 
@@ -144,6 +153,154 @@ def redact(text: str) -> str:
     return redacted
 
 
+def mode_mcp_profile(mode_name: str) -> str:
+    if mode_name in {
+        "superpowers-plan-review",
+        "plan-red-team",
+        "scope-trimmer",
+        "acceptance-checker",
+        "risk-register",
+        "architecture-decision-review",
+        "implementation-strategy",
+        "prompt-quality-review",
+    }:
+        return "plan"
+    if mode_name in {
+        "diff-review",
+        "minimal-change-review",
+        "legacy-safety-review",
+        "api-contract-review",
+        "data-consistency-review",
+        "test-gap-review",
+        "failure-mode-review",
+        "observability-review",
+        "performance-review",
+        "security-review",
+        "privacy-review",
+        "release-readiness-review",
+        "rollback-review",
+        "incident-premortem",
+        "handoff-summary-review",
+        "second-opinion-opus",
+        "fast-sonnet-check",
+        "multi-perspective-review",
+        "contradiction-finder",
+        "user-intent-audit",
+    }:
+        return "code"
+    if mode_name == "documentation-review":
+        return "docs"
+    return "none"
+
+
+def profile_server_names(profile: str, mode_name: str) -> tuple[str, ...]:
+    resolved = mode_mcp_profile(mode_name) if profile == "auto" else profile
+    if resolved == "docs":
+        return ("serena", "gitnexus", "context7")
+    if resolved in {"plan", "code", "data"}:
+        return ("serena", "gitnexus")
+    return ()
+
+
+def can_connect_tcp(url: str, timeout: float = 0.35) -> bool:
+    match = re.match(r"^https?://([^/:]+)(?::(\d+))?/", url)
+    if not match:
+        return False
+    host = match.group(1)
+    port = int(match.group(2) or (443 if url.startswith("https://") else 80))
+    try:
+        with socket.create_connection((host, port), timeout=timeout):
+            return True
+    except OSError:
+        return False
+
+
+def bearer_headers_helper(env_name: str) -> str:
+    script = (
+        "import json, os, sys; "
+        f"token=os.environ.get({env_name!r}, ''); "
+        "sys.exit(1) if not token else print(json.dumps({'Authorization':'Bearer '+token}))"
+    )
+    return f"python3 -c {shlex.quote(script)}"
+
+
+def build_mcp_runtime(profile: str, mode_name: str, runtime_dir: Path) -> McpRuntime:
+    wanted = profile_server_names(profile, mode_name)
+    servers: dict[str, dict[str, object]] = {}
+    unavailable: list[str] = []
+
+    if "serena" in wanted:
+        uvx = shutil.which("uvx")
+        if uvx:
+            serena_context = os.environ.get("CLAUDE_COMPANION_SERENA_CONTEXT", "codex")
+            servers["serena"] = {
+                "type": "stdio",
+                "command": uvx,
+                "args": [
+                    "--from",
+                    "git+https://github.com/oraios/serena",
+                    "serena",
+                    "start-mcp-server",
+                    f"--context={serena_context}",
+                ],
+                "env": {},
+            }
+        else:
+            unavailable.append("serena: uvx not found")
+
+    if "gitnexus" in wanted:
+        gitnexus = shutil.which("gitnexus")
+        if gitnexus:
+            servers["gitnexus"] = {
+                "type": "stdio",
+                "command": gitnexus,
+                "args": ["mcp"],
+                "env": {},
+            }
+        else:
+            gitnexus_url = os.environ.get("CLAUDE_COMPANION_GITNEXUS_URL", "http://127.0.0.1:9401/api/mcp")
+            token_env = os.environ.get("CLAUDE_COMPANION_GITNEXUS_TOKEN_ENV", "SELFY_MCP_BEARER")
+            if os.environ.get(token_env) and can_connect_tcp(gitnexus_url):
+                servers["gitnexus"] = {
+                    "type": "http",
+                    "url": gitnexus_url,
+                    "headersHelper": bearer_headers_helper(token_env),
+                }
+            else:
+                unavailable.append("gitnexus: gitnexus command not found and local HTTP MCP unavailable")
+
+    if "context7" in wanted:
+        servers["context7"] = {
+            "type": "http",
+            "url": os.environ.get("CLAUDE_COMPANION_CONTEXT7_URL", "https://mcp.context7.com/mcp"),
+        }
+
+    config_path = runtime_dir / "mcp-config.json"
+    config_path.write_text(json.dumps({"mcpServers": servers}, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+    return McpRuntime(
+        profile=mode_mcp_profile(mode_name) if profile == "auto" else profile,
+        config_path=config_path,
+        enabled=tuple(sorted(servers)),
+        unavailable=tuple(unavailable),
+    )
+
+
+def mcp_prompt_context(runtime: McpRuntime) -> str:
+    enabled = ", ".join(runtime.enabled) if runtime.enabled else "none"
+    unavailable = "; ".join(runtime.unavailable) if runtime.unavailable else "none"
+    return f"""Profile: {runtime.profile}
+Enabled MCP servers: {enabled}
+Unavailable MCP servers: {unavailable}
+
+Tool routing rules:
+- Use Serena for semantic code navigation, symbol lookup, references, and targeted source understanding.
+- Use GitNexus for call graph, impact analysis, affected-scope checks, execution flows, and cross-file risk mapping.
+- Use Context7 only for current library/framework/API behavior when the review depends on external docs.
+- Keep all MCP usage read-only. Do not edit files, write files, mutate databases, change services, or run implementation commands.
+- Ground findings in supplied context, file paths, symbols, MCP output, or explicit uncertainty.
+- If an MCP server is unavailable, state the missing evidence and continue with the supplied context instead of guessing."""
+
+
 def build_prompt(mode: Mode, request_id: str, context: dict[str, str]) -> str:
     sections = "\n".join(f"## {section}\n- ..." for section in mode.sections)
     lenses = "\n".join(f"- {lens}" for lens in mode.lenses)
@@ -159,6 +316,9 @@ Prefer concrete patches/checks over general advice. Separate blockers from optio
 
 Review lenses:
 {lenses}
+
+## MCP And Tool Routing
+{context["mcp_context"]}
 
 Context:
 
@@ -301,6 +461,7 @@ def start_claude_tmux(
     request_id: str,
     mode: str,
     bridge_root: Path,
+    mcp_config_path: Path,
 ) -> None:
     if tmux_has_session(session, project_root):
         raise RunnerError(f"tmux session already exists: {session}")
@@ -314,7 +475,9 @@ def start_claude_tmux(
     exports = " ".join(f"{key}={shlex.quote(value)}" for key, value in env_prefix.items())
     command = (
         f"{exports} {shlex.quote(claude_bin)} "
-        f"--no-chrome --settings {shlex.quote(str(settings_path))} --model {shlex.quote(model)} --tools ''"
+        f"--no-chrome --settings {shlex.quote(str(settings_path))} --model {shlex.quote(model)} "
+        f"--mcp-config {shlex.quote(str(mcp_config_path))} --strict-mcp-config "
+        f"--tools default --disallowedTools {shlex.quote('Edit,Write,MultiEdit,NotebookEdit,Bash')}"
     )
     result = run(["tmux", "new-session", "-d", "-s", session, "-c", str(project_root), "sh", "-lc", command], project_root, check=False)
     if result.returncode != 0:
@@ -388,6 +551,7 @@ def parse_args(argv: list[str]) -> argparse.Namespace:
     parser.add_argument("--idle-timeout", type=int, default=DEFAULT_IDLE_TIMEOUT_SECONDS, help="seconds without meaningful tmux activity before failing; 0 disables idle timeout")
     parser.add_argument("--poll-interval", type=float, default=DEFAULT_POLL_INTERVAL_SECONDS, help="seconds between outbox/tmux checks")
     parser.add_argument("--wait-forever", action="store_true", help="disable the absolute timeout and rely on idle/session/outbox monitoring")
+    parser.add_argument("--mcp-profile", choices=("auto", "none", "plan", "code", "data", "docs"), default="auto", help="trimmed MCP profile for this Claude review session")
     parser.add_argument("--no-diff", action="store_true", help="Do not include git diff")
     parser.add_argument("--keep-session-on-failure", action="store_true")
     parser.add_argument("--json", action="store_true", help="Print machine-readable result only")
@@ -411,6 +575,7 @@ def main(argv: list[str]) -> int:
         runtime_dir = bridge_root / "runtime" / request_id
         for directory in [inbox_dir, outbox_dir, runtime_dir]:
             directory.mkdir(parents=True, exist_ok=True)
+        mcp_runtime = build_mcp_runtime(args.mcp_profile, args.mode, runtime_dir)
 
         input_text = read_optional(args.input, project_root)
         verification_output = read_optional(args.verification_file, project_root)
@@ -426,6 +591,7 @@ def main(argv: list[str]) -> int:
             "diff_stat": diff_stat,
             "diff_patch": diff_patch,
             "verification_output": verification_output,
+            "mcp_context": mcp_prompt_context(mcp_runtime),
         }
         context = {key: redact(value) for key, value in context.items()}
         prompt = build_prompt(mode, request_id, context)
@@ -446,6 +612,7 @@ def main(argv: list[str]) -> int:
             request_id=request_id,
             mode=args.mode,
             bridge_root=bridge_root,
+            mcp_config_path=mcp_runtime.config_path,
         )
         time.sleep(3)
         send_to_tmux(session, prompt, project_root)
@@ -472,6 +639,13 @@ def main(argv: list[str]) -> int:
             "outbox_path": str(outbox_path),
             "metadata_path": str(metadata_path),
             "session_closed": not tmux_has_session(session, project_root),
+            "mcp": {
+                "profile": mcp_runtime.profile,
+                "config_path": str(mcp_runtime.config_path),
+                "enabled": list(mcp_runtime.enabled),
+                "unavailable": list(mcp_runtime.unavailable),
+                "strict": True,
+            },
             "monitor": {
                 "wait_seconds": monitor.wait_seconds,
                 "exit_reason": monitor.exit_reason,

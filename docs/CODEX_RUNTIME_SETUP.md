@@ -73,7 +73,7 @@ python3 plugins/claude-companion/scripts/run_review.py \
   --prompt "Smoke test Claude Companion"
 ```
 
-When Codex supports local marketplace installation for this repository, add this repo as a local marketplace and install `claude-companion`. Until then, the skills document the command-style workflow:
+`install.py` registers this repository as the local `codex-starter-kit` marketplace and enables `claude-companion@codex-starter-kit` when the bundled plugin metadata is present. Restart Codex after installation, then run `codex plugin marketplace upgrade codex-starter-kit` if you want to refresh the plugin cache immediately.
 
 Marketplace metadata is included at:
 
@@ -88,3 +88,22 @@ $claude:security-review
 ```
 
 The command-style prefix is handled by the plugin skills: Codex should translate `$claude:<mode>` into a call to `plugins/claude-companion/scripts/run_review.py --mode <mode>`.
+
+For normal handoff work, Codex does not need an explicit `$claude:` prefix. The global `AGENTS.md` template, `agents_orchestrator`, planning methodology, and code review skills route high-risk plans, broad diffs, security/data consistency reviews, and release readiness checks to Claude Companion when it is available. Claude remains reviewer-only: Codex reads the outbox, classifies recommendations, applies only accepted changes, and verifies the result.
+
+Use strict runtime MCP profiles instead of inheriting the user's full Claude MCP setup:
+
+```bash
+python3 plugins/claude-companion/scripts/run_review.py \
+  --mode diff-review \
+  --prompt "Review the current diff" \
+  --mcp-profile auto
+```
+
+Profiles:
+
+- `auto`: choose a profile from the review mode
+- `plan`: Serena + GitNexus for plan and strategy review
+- `code`: Serena + GitNexus for diff, data, security, test, and release review
+- `docs`: Serena + GitNexus + Context7 for documentation review
+- `none`: no MCP servers

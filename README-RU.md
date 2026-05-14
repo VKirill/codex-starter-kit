@@ -226,6 +226,8 @@ Installer работает в baseline mode: он делает этот starter 
 - agent TOML проверяется после установки
 - `skills.config` paths переписываются под ваш home directory
 - `codex plugin marketplace upgrade` и `codex mcp list` запускаются только если `codex` есть в `PATH`
+- локальный plugin marketplace `codex-starter-kit` регистрируется динамически из install path, а `claude-companion@codex-starter-kit` включается, если bundled plugin metadata есть в репозитории
+- bundled local plugins также копируются в Codex plugin cache, поэтому их skills видны в новых Codex sessions без отдельной ручной установки
 - `rules/default.rules` снижает количество запросов подтверждения для read-only команд: package metadata checks, Linux inspection, service status, Docker/Kubernetes/Terraform inspection и GitHub CLI view/list
 - npm workspace формы (`npm --workspace`, `npm -w`, `npm --workspaces`, `npm --prefix`) и pnpm workspace формы (`pnpm --filter`, `pnpm -F`, `pnpm --recursive`, `pnpm -r`, `pnpm --dir`, `pnpm -C`) одобрены для handoff development workflow
 - `hooks/handoff-intake-classifier.py` классифицирует user prompts на `UserPromptSubmit` только если существует `~/.codex/private/handoff-classifier.env`. При наличии этого private-файла он без сети работает через deterministic fallback и использует LLM как основной classifier, если там заданы `OPENAI_API_KEY` и `HANDOFF_CLASSIFIER_MODEL`. LLM path запрашивает строгий Responses API Structured Outputs (`text.format` JSON Schema) и нормализует typed booleans вроде `should_edit`, `requires_release_flow`, `requires_worktree_gate` и `requires_gitnexus_impact`; plain JSON parsing оставлен только как compatibility fallback. Итоговый hook context рендерится компактно на английском.
@@ -239,6 +241,7 @@ Installer работает в baseline mode: он делает этот starter 
 - `hooks/handoff-post-tool-use.py` добавляет follow-up context после package installs, failed shell commands, `git diff` и verification commands, чтобы Codex проверял diff/tests, связывал результат с task ledger или исправлял конкретную ошибку перед повтором команды
 - MCP servers в starter kit используют `default_tools_approval_mode = "approve"` для handoff flow; database и local-machine MCP всё равно должны использоваться read-only, если пользователь явно не просил mutation
 - `templates/AGENTS.md` содержит handoff intake scoring и task-ledger правила. Для нетривиальных implementation tasks теперь по умолчанию предполагается proactive subagent authorization, а вопросы, planning-only задачи, one-file fixes и явные inline-only requests остаются inline. Одобренные Superpowers plans могут автоматически использовать описанный worker split, а implementation plans должны включать review checkpoints после секций и финальный code-review/verification pass.
+- Claude Companion встроен в `templates/AGENTS.md`, `agents_orchestrator`, planning methodology и code review skills как advisory second-opinion reviewer. Если доступны `claude` и `tmux`, high-risk plans, broad diffs, data/security reviews и release readiness checks могут идти через `plugins/claude-companion/scripts/run_review.py` со strict runtime MCP profiles (`auto`, `plan`, `code`, `docs`, `none`); Codex всё равно обязан классифицировать и проверять каждую рекомендацию перед применением.
 
 Опциональная классификация prompts и LLM fallback:
 

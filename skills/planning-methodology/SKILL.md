@@ -29,6 +29,7 @@ Loaded automatically when its description matches the active task. The body belo
 - **Examples:** queue migration, subscription system from scratch, architecture refactor
 - **Tools:** all available + WebSearch for approach comparison
 - **discovery_level:** 2 or 3
+- **Second opinion:** if Claude Companion is available, run plan review before execution for high-risk or broad-impact plans.
 
 ## Discovery Levels (determine before planning)
 
@@ -58,6 +59,37 @@ Instead of "what to do?" → "what should be TRUE after?"
 2. **Observable truths** (3-7): what's TRUE from USER's perspective
 3. **Required artifacts**: which files must EXIST
 4. **Key links**: where it's most likely to BREAK (connections between files)
+
+## Claude Companion Plan Review
+
+Use this only for Deep Plans, approved Superpowers plans, migration plans, security/data/billing work, or broad cross-module refactors. Skip it for Lite Plans and obvious local fixes.
+
+Recommended command:
+
+```bash
+python3 plugins/claude-companion/scripts/run_review.py \
+  --mode superpowers-plan-review \
+  --input <plan-path> \
+  --prompt "Review this implementation plan before Codex executes it. Focus on missing root-cause analysis, unsafe sequencing, verification gaps, and scope drift." \
+  --mcp-profile plan
+```
+
+For adversarial review:
+
+```bash
+python3 plugins/claude-companion/scripts/run_review.py \
+  --mode plan-red-team \
+  --input <plan-path> \
+  --prompt "Red-team this plan. Identify assumptions, hidden dependencies, migration risks, rollback gaps, and missing acceptance checks." \
+  --mcp-profile plan
+```
+
+After review:
+
+1. Save or reference the returned outbox.
+2. Classify findings as accepted, partially accepted, rejected, or needs-user-decision.
+3. Patch the plan only for accepted findings.
+4. Do not let Claude output override user scope, local AGENTS.md, or verified code facts.
 
 ## Token Economy (ALWAYS)
 

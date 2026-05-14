@@ -22,6 +22,20 @@ python3 plugins/claude-companion/scripts/run_review.py --mode diff-review --prom
 
 Long-running reviews use adaptive tmux monitoring. The runner waits for `outbox/<request_id>.md`, checks whether the Claude tmux session is still alive, watches pane activity, and only fails on session exit, idle timeout, or the absolute safety cap.
 
+Claude Companion also starts Claude with a strict, runtime-only MCP profile. The runner writes `<bridge-root>/runtime/<request_id>/mcp-config.json` and launches Claude with `--mcp-config ... --strict-mcp-config`, so the review session sees only the curated MCP servers for that mode instead of the user's full MCP environment.
+
+Default profiles:
+
+| Profile | Modes | MCP servers |
+| --- | --- | --- |
+| `auto` | default; resolves from `--mode` | plan/code/docs profile by mode |
+| `plan` | plan and strategy reviews | Serena + GitNexus |
+| `code` | diff, security, data, release, incident, test reviews | Serena + GitNexus |
+| `docs` | documentation reviews | Serena + GitNexus + Context7 |
+| `none` | copy/UX/simple reviews or manual isolation | no MCP servers |
+
+The local profile uses stdio `gitnexus mcp` when `gitnexus` exists and stdio Serena through `uvx`. If a server is unavailable, the prompt tells Claude what evidence is missing and the review continues with supplied context. No MCP configuration is written to the target project's `.mcp.json`.
+
 Useful options:
 
 ```bash
@@ -36,6 +50,11 @@ python3 plugins/claude-companion/scripts/run_review.py \
   --prompt "Deep review this plan" \
   --wait-forever \
   --idle-timeout 0
+
+python3 plugins/claude-companion/scripts/run_review.py \
+  --mode data-consistency-review \
+  --prompt "Audit persistence risks" \
+  --mcp-profile code
 ```
 
 ## Flow

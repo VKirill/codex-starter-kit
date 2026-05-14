@@ -10,6 +10,7 @@ __pycache__/
 .cache/
 .claude-bridge/
 .codex/claude-bridge/
+.serena/
 dist/
 build/
 *.egg-info/

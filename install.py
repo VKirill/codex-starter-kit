@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import argparse
 import datetime as dt
+import json
 import os
 from pathlib import Path
 import shutil
@@ -103,8 +104,47 @@ def install_rules(*, dry_run: bool, backup: bool, codex_home: Path) -> None:
         shutil.copytree(REPO_ROOT / "rules", rules_dir)
 
 
+def install_local_plugins(*, dry_run: bool, backup: bool, codex_home: Path) -> None:
+    marketplace_path = REPO_ROOT / ".agents" / "plugins" / "marketplace.json"
+    if not marketplace_path.exists():
+        return
+    marketplace = json.loads(marketplace_path.read_text(encoding="utf-8"))
+    marketplace_name = marketplace["name"]
+    for plugin in marketplace.get("plugins", []):
+        if plugin.get("source", {}).get("source") != "local":
+            continue
+        plugin_name = plugin["name"]
+        plugin_src = (REPO_ROOT / plugin["source"]["path"]).resolve()
+        plugin_manifest = plugin_src / ".codex-plugin" / "plugin.json"
+        if not plugin_manifest.exists():
+            print(f"warning: skip local plugin {plugin_name}: missing {plugin_manifest}")
+            continue
+        version = json.loads(plugin_manifest.read_text(encoding="utf-8")).get("version", "local")
+        plugin_dst = codex_home / "plugins" / "cache" / marketplace_name / plugin_name / version
+        # Plugin cache directories are generated artifacts. Do not leave `.bak-*`
+        # siblings inside the cache tree: Codex treats version-like directories as
+        # load candidates and may pick the backup as the active skill root.
+        backup_or_remove(plugin_dst, dry_run=dry_run, backup=False)
+        print(f"write local plugin cache {plugin_name}@{marketplace_name} {plugin_src} -> {plugin_dst}")
+        if not dry_run:
+            plugin_dst.parent.mkdir(parents=True, exist_ok=True)
+            shutil.copytree(plugin_src, plugin_dst, ignore=shutil.ignore_patterns("__pycache__", "*.pyc"))
+
+
 def install_config(*, dry_run: bool, backup: bool, codex_home: Path) -> None:
     snippet = (REPO_ROOT / "templates" / "config.recommended.toml").read_text(encoding="utf-8")
+    if (REPO_ROOT / ".agents" / "plugins" / "marketplace.json").exists():
+        snippet = snippet.rstrip() + f"""
+
+# Local Codex Starter Kit plugin marketplace. This lets Codex discover bundled
+# repo-local plugins such as Claude Companion after `codex plugin marketplace upgrade`.
+[marketplaces.codex-starter-kit]
+source_type = "local"
+source = "{REPO_ROOT}"
+
+[plugins."claude-companion@codex-starter-kit"]
+enabled = true
+"""
     install_text(snippet, codex_home / "config.toml", dry_run=dry_run, backup=backup, label="baseline config")
 
 
@@ -170,6 +210,7 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--skip-skills", action="store_true")
     parser.add_argument("--skip-hooks", action="store_true")
     parser.add_argument("--skip-rules", action="store_true")
+    parser.add_argument("--skip-plugins", action="store_true")
     parser.add_argument("--skip-global-agents-md", action="store_true")
     parser.add_argument("--validate-only", action="store_true")
     args = parser.parse_args(argv)
@@ -196,6 +237,8 @@ def main(argv: list[str] | None = None) -> int:
         install_hooks(dry_run=args.dry_run, backup=backup, codex_home=codex_home)
     if not args.skip_rules:
         install_rules(dry_run=args.dry_run, backup=backup, codex_home=codex_home)
+    if not args.skip_plugins:
+        install_local_plugins(dry_run=args.dry_run, backup=backup, codex_home=codex_home)
     if not args.skip_config:
         install_config(dry_run=args.dry_run, backup=backup, codex_home=codex_home)
     if not args.skip_runtime_refresh:

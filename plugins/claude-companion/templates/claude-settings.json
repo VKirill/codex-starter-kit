@@ -1,4 +1,19 @@
 {
+  "permissions": {
+    "deny": [
+      "Edit(*)",
+      "Write(*)",
+      "MultiEdit(*)",
+      "NotebookEdit(*)",
+      "Bash(*)",
+      "Read(.env)",
+      "Read(.env.*)",
+      "Read(**/.env)",
+      "Read(**/.env.*)",
+      "Read(**/secrets/**)",
+      "Read(**/credentials/**)"
+    ]
+  },
   "hooks": {
     "Stop": [
       {

@@ -34,6 +34,16 @@ python3 plugins/claude-companion/scripts/run_review.py --mode <mode> --prompt "<
 
 The runner uses adaptive tmux monitoring. It waits for the Stop hook to create the outbox file, keeps watching while Claude is visibly thinking, fails if the tmux session exits, and uses idle/absolute timeouts only as safety guards.
 
+The runner also uses strict runtime MCP profiles:
+
+- `auto` picks a profile from the review mode.
+- `plan` enables Serena + GitNexus for plan/strategy review.
+- `code` enables Serena + GitNexus for diff, data, security, release, and test review.
+- `docs` enables Serena + GitNexus + Context7 for documentation review.
+- `none` disables MCP servers for isolated or simple reviews.
+
+These profiles are written to `<bridge-root>/runtime/<request_id>/mcp-config.json` and passed with `--strict-mcp-config`, so the Claude review session does not inherit unrelated user/project MCP servers. Use MCP read-only: Serena for symbols/references, GitNexus for call graph/impact/execution-flow checks, and Context7 for current library documentation.
+
 For deep reviews:
 
 ```bash

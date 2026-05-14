@@ -12,15 +12,16 @@ Use this skill after implementation, before final completion claims, merge, depl
 ```bash
 python3 plugins/claude-companion/scripts/run_review.py \
   --mode diff-review \
-  --prompt "Review the current diff"
+  --prompt "Review the current diff" \
+  --mcp-profile code
 ```
 
 For specialized modes:
 
 ```bash
-python3 plugins/claude-companion/scripts/run_review.py --mode security-review --prompt "Review the current diff for security risk"
-python3 plugins/claude-companion/scripts/run_review.py --mode test-gap-review --prompt "Find missing verification for this diff"
-python3 plugins/claude-companion/scripts/run_review.py --mode release-readiness-review --prompt "Check whether this is ready to report complete"
+python3 plugins/claude-companion/scripts/run_review.py --mode security-review --prompt "Review the current diff for security risk" --mcp-profile code
+python3 plugins/claude-companion/scripts/run_review.py --mode test-gap-review --prompt "Find missing verification for this diff" --mcp-profile code
+python3 plugins/claude-companion/scripts/run_review.py --mode release-readiness-review --prompt "Check whether this is ready to report complete" --mcp-profile code
 ```
 
 ## Integration Contract
@@ -36,3 +37,5 @@ When Claude returns findings:
 ## Safety
 
 Do not run Claude review if `claude` is missing. This plugin is not an installer and never reads Claude credentials.
+
+Use `--mcp-profile code` for code, security, data, test, and release reviews. It gives Claude read-only Serena and GitNexus context when available. Use `--no-diff` with an explicit `--input` file if the current diff contains unrelated work, secrets risk, or noisy generated files.

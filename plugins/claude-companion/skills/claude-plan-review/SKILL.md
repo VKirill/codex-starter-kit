@@ -13,7 +13,8 @@ Use this skill after Codex has drafted a plan and before implementation begins.
 python3 plugins/claude-companion/scripts/run_review.py \
   --mode superpowers-plan-review \
   --input <plan-path> \
-  --prompt "Review this implementation plan before Codex executes it"
+  --prompt "Review this implementation plan before Codex executes it" \
+  --mcp-profile plan
 ```
 
 Use `plan-red-team` for high-risk plans:
@@ -22,7 +23,8 @@ Use `plan-red-team` for high-risk plans:
 python3 plugins/claude-companion/scripts/run_review.py \
   --mode plan-red-team \
   --input <plan-path> \
-  --prompt "Red-team this plan before implementation"
+  --prompt "Red-team this plan before implementation" \
+  --mcp-profile plan
 ```
 
 ## Integration Contract
@@ -37,3 +39,5 @@ When Claude returns recommendations:
 ## Safety
 
 Claude is reviewer-only. Do not let it edit files or run commands. The runner sends context through the prompt and captures the answer through the Stop hook.
+
+Use `--mcp-profile plan` for plan and strategy reviews. It gives Claude read-only Serena and GitNexus context when available. Use `--mcp-profile none` for sensitive plans that should only use the provided file.

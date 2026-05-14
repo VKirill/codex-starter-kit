@@ -29,6 +29,10 @@ enabled = true
 [plugins."superpowers@openai-curated"]
 enabled = true
 
+# `install.py` appends a local `codex-starter-kit` marketplace and enables
+# `claude-companion@codex-starter-kit` when this repository includes bundled
+# plugins. The dynamic path is not hardcoded here so the template stays portable.
+
 [features]
 plugin_hooks = true
 hooks = true
