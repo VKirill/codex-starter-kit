@@ -1,0 +1,20 @@
+{
+  "name": "codex-starter-kit",
+  "interface": {
+    "displayName": "Codex Starter Kit"
+  },
+  "plugins": [
+    {
+      "name": "claude-companion",
+      "source": {
+        "source": "local",
+        "path": "./plugins/claude-companion"
+      },
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_USE"
+      },
+      "category": "Coding"
+    }
+  ]
+}

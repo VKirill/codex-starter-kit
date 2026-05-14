@@ -1,0 +1,15 @@
+{
+  "hooks": {
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 {{CAPTURE_STOP_PATH}}",
+            "tag": "codex-claude-companion-capture"
+          }
+        ]
+      }
+    ]
+  }
+}

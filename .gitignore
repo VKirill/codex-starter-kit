@@ -8,6 +8,8 @@ __pycache__/
 .env.*
 !.env.example
 .cache/
+.claude-bridge/
+.codex/claude-bridge/
 dist/
 build/
 *.egg-info/

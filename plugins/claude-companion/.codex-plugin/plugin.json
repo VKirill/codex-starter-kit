@@ -1,0 +1,42 @@
+{
+  "name": "claude-companion",
+  "version": "0.1.0",
+  "description": "Run interactive Claude Code review sessions from Codex through tmux and project-local Stop hooks.",
+  "author": {
+    "name": "Codex Starter Kit",
+    "email": "support@example.com",
+    "url": "https://github.com/VKirill/codex-starter-kit"
+  },
+  "homepage": "https://github.com/VKirill/codex-starter-kit",
+  "repository": "https://github.com/VKirill/codex-starter-kit",
+  "license": "MIT",
+  "keywords": [
+    "claude",
+    "code-review",
+    "plan-review",
+    "tmux",
+    "codex"
+  ],
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "Claude Companion",
+    "shortDescription": "Review Codex plans and diffs with interactive Claude Code",
+    "longDescription": "Claude Companion lets Codex prepare review packs, launch an isolated interactive Claude Code session in tmux, capture the answer through a project-local Stop hook, and use the resulting markdown as advisory feedback.",
+    "developerName": "Codex Starter Kit",
+    "category": "Coding",
+    "capabilities": [
+      "Interactive",
+      "Read"
+    ],
+    "websiteURL": "https://github.com/VKirill/codex-starter-kit",
+    "privacyPolicyURL": "https://github.com/VKirill/codex-starter-kit",
+    "termsOfServiceURL": "https://github.com/VKirill/codex-starter-kit",
+    "defaultPrompt": [
+      "$claude:superpowers-plan-review review this plan",
+      "$claude:diff-review review my current diff",
+      "$claude:security-review check risk"
+    ],
+    "brandColor": "#7C3AED",
+    "screenshots": []
+  }
+}

@@ -45,6 +45,7 @@
 - базовый `~/.codex/config.toml` с GitHub и Superpowers plugins
 - публичные docs MCP: Context7, Vue, Nuxt UI, Nuxt
 - рекомендованные локальные MCP-маршруты для Serena, GitNexus, Postgres, Open Design и claude-mem
+- repo-local прототип Claude Companion plugin в `plugins/claude-companion` для ревью через interactive Claude Code в tmux
 - установщик с `--dry-run`, backup-режимом и валидацией
 
 Главная идея простая: вы не собираете рабочий Codex-процесс с нуля. Вы ставите базу, проверяете ее и дальше настраиваете под свои проекты через локальные `AGENTS.md`.
@@ -70,6 +71,8 @@ https://github.com/VKirill/codex-starter-kit
 - включить GitHub и Superpowers plugin entries через config.toml
 - включить public docs MCP servers для Context7, Vue, Nuxt UI и Nuxt
 - проверить и описать recommended local MCP/plugin routes для Serena, GitNexus, Postgres, Open Design и claude-mem
+- выполнить полную локальную самонастройку workflow, когда это безопасно: Serena, GitNexus и claude-mem
+- включить Claude Companion только если Claude Code CLI уже установлен; не устанавливать Claude или tmux автоматически
 - добавить GitHub/source links для каждого включенного plugin и recommended MCP/plugin route
 - сохранить старые файлы через timestamped .bak-* backups
 
@@ -87,18 +90,47 @@ https://github.com/VKirill/codex-starter-kit
 8. Проверь, что ~/.codex/config.toml содержит GitHub и Superpowers plugins, а также MCP servers context7, vue-docs, nuxt-ui-remote и nuxt-remote.
 9. Сообщи, что Serena, GitNexus, Postgres, Open Design и claude-mem — recommended local/plugin routes для полноценного starter-kit workflow.
 10. Для каждого включенного plugin и recommended MCP/plugin route покажи GitHub/source link из README.md или templates/config.recommended.toml.
-11. Если recommended local MCP/plugin уже установлен и его безопасно проверить, проверь через `codex mcp list` или его status-команду. Не записывай private ports, local paths, bearer tokens или database credentials в публичные файлы starter kit.
-12. Если команда codex доступна, запусти:
+11. Запусти полный local workflow preflight:
+   - определи OS и package manager: apt, dnf, pacman, zypper, brew или none
+   - проверь команды: tmux, claude, uv, uvx, node, npm, npx, gitnexus
+   - проверь Codex runtime: codex, `codex plugin marketplace upgrade`, `codex mcp list`
+   - перед установкой чего-либо покажи, каких tools не хватает
+12. Если Claude Code CLI отсутствует, не устанавливай Claude и не устанавливай tmux для Claude Companion. Сообщи, что Claude Companion отключён на этой машине, пока пользователь сам не установит и не авторизует Claude Code.
+13. Если Claude Code CLI есть, проверь `claude --version`. Затем проверь tmux. Если tmux отсутствует, не устанавливай его автоматически; покажи manual install command для найденного package manager:
+   - Ubuntu/Debian: `sudo apt-get update && sudo apt-get install -y tmux`
+   - Fedora/RHEL: `sudo dnf install -y tmux`
+   - Arch: `sudo pacman -S --needed tmux`
+   - openSUSE: `sudo zypper install -y tmux`
+   - macOS: `brew install tmux`
+14. Не читай, не копируй, не парси, не печатай и не переноси Claude credentials. Используй только собственный auth flow Claude Code. Если Claude установлен, но не авторизован, открой интерактивную `claude`-сессию и попроси пользователя выполнить `/login`; затем перепроверь. Не инспектируй `~/.claude/.credentials.json`, cookies, keychains, bearer tokens или API keys.
+15. Если uv/uvx отсутствует и Serena нужна или не установлена, установи uv после подтверждения через официальный Astral installer или системный package manager. Затем установи и инициализируй Serena:
+   `uv tool install -p 3.13 serena-agent@latest --prerelease=allow`
+   `serena init`
+   Проверь, что `serena` доступна в PATH. Не записывай private ports или bearer tokens в публичные starter-kit файлы.
+16. Если GitNexus отсутствует, установи или используй его после подтверждения:
+   `npm install -g gitnexus`
+   или для одноразового MCP-запуска:
+   `npx -y gitnexus@latest mcp`
+   Затем выполни безопасные проверки: `gitnexus --help`, `gitnexus status` в текущем repo, если применимо. Перед индексацией больших репозиториев спроси подтверждение. Если пользователь разрешит индексировать этот starter-kit repo, запусти `gitnexus analyze` из repo root.
+17. Если claude-mem отсутствует и пользователь хочет memory continuity, установи его после подтверждения:
+   `npx claude-mem@latest install`
+   Затем перезапусти Codex и проверь доступные MCP/tools, если это безопасно. Если install падает или выглядит нестабильно, сообщи ошибку и оставь его выключенным.
+18. Если recommended local MCP/plugin routes уже установлены и их безопасно проверить, проверь через `codex mcp list` или их read-only status-команды. Не записывай private ports, local paths, bearer tokens или database credentials в публичные starter-kit файлы.
+19. Если команда codex доступна, запусти:
    codex plugin marketplace upgrade
    codex mcp list
-13. Проверь установленных агентов:
+20. Проверь установленных агентов:
    ./install.sh --validate-only
-14. В конце кратко напиши, что изменилось, где лежат backups, какие recommended MCP/plugin routes активны или отсутствуют, и что нужно перезапустить Codex.
+21. В конце кратко напиши, что изменилось, где лежат backups, какие tools установлены, какие recommended MCP/plugin routes активны или отсутствуют, где ещё нужен ручной login и что нужно перезапустить Codex.
 
 Правила безопасности:
 - не удаляй ~/.codex, ~/.agents или существующие agents/skills без backup
 - не используй --force и --no-backup без моего явного разрешения
 - не копируй secrets, bearer tokens, приватные MCP настройки и локальные database credentials
+- не устанавливай Claude Code или tmux автоматически; Claude Companion работает только на машинах, где Claude уже установлен
+- не читай Claude credentials напрямую; всегда делегируй authentication самому Claude Code
+- спрашивай подтверждение перед sudo, package-manager installs, global npm installs, `curl | sh`, индексацией больших repo, запуском daemons или изменением services
+- перед mutation предпочитай read-only проверки; если install падает, остановись и предложи самый маленький безопасный fix
 - если команда требует повышенного доступа или сетевого разрешения, сначала объясни зачем
 - если проверка падает, остановись, покажи ошибку и предложи самый маленький безопасный fix
 ```

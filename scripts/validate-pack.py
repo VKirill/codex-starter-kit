@@ -25,6 +25,33 @@ for path in sorted((root / "skills").glob("*/SKILL.md")):
     text = path.read_text(errors="replace")
     if not text.startswith("---"):
         errors.append(f"{path}: missing YAML frontmatter")
+for path in sorted((root / "plugins").glob("*/.codex-plugin/plugin.json")):
+    try:
+        plugin = json.loads(path.read_text(encoding="utf-8"))
+    except Exception as exc:
+        errors.append(f"{path}: {exc}")
+        continue
+    plugin_root = path.parents[1]
+    if plugin.get("name") != plugin_root.name:
+        errors.append(f"{path}: name does not match plugin directory")
+    skills_dir = plugin.get("skills")
+    if skills_dir and not (plugin_root / skills_dir).exists():
+        errors.append(f"{path}: skills path does not exist: {skills_dir}")
+    for skill_path in sorted((plugin_root / "skills").glob("*/SKILL.md")):
+        if not skill_path.read_text(encoding="utf-8", errors="replace").startswith("---"):
+            errors.append(f"{skill_path}: missing YAML frontmatter")
+marketplace_path = root / ".agents" / "plugins" / "marketplace.json"
+if marketplace_path.exists():
+    try:
+        marketplace = json.loads(marketplace_path.read_text(encoding="utf-8"))
+    except Exception as exc:
+        errors.append(f"{marketplace_path}: {exc}")
+    else:
+        for entry in marketplace.get("plugins", []):
+            source = entry.get("source", {})
+            path = source.get("path")
+            if source.get("source") == "local" and path and not (root / path).exists():
+                errors.append(f"{marketplace_path}: local plugin path does not exist: {path}")
 try:
     config = tomllib.loads((root / "templates" / "config.recommended.toml").read_text(encoding="utf-8"))
 except Exception as exc:
