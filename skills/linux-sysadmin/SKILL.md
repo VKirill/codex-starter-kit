@@ -1,8 +1,8 @@
 ---
 name: linux-sysadmin
-description: "This skill provides expert Linux system administration for Ubuntu 24.04 production servers with Angie (Nginx fork), PM2, PostgreSQL 16, Redis 7, Docker, and UFW. Activate proactively
+description: "This skill provides expert Linux system administration for Ubuntu 24.04 production servers with Angie (Nginx fork), PM2, PostgreSQL 16, Redis 7, Docker, UFW, and Yandex Cloud/Yandex Console operational tasks. Activate proactively
   whenever the user mentions: server health, nginx, angie, reverse proxy, SSL, certificates, ACME, ports, firewall, ufw, backup, disk space, memory, CPU, processes, pm2, docker, postgres, redis, logs,
-  security, updates, cron, systemd, domain setup, or any server management task. Also activate when troubleshooting: site down, slow server, connection refused, disk full, OOM, service crash."
+  security, updates, cron, systemd, domain setup, Yandex Cloud, Yandex Console, yc CLI, cloud networking, IAM, quotas, managed services, or any server management task. Also activate when troubleshooting: site down, slow server, connection refused, disk full, OOM, service crash."
 stacks:
   - sysadmin
 tags:
@@ -26,6 +26,7 @@ displayName: Linux SysAdmin
 - Diagnosing: site down, slow server, disk full, OOM, connection refused, service crash
 - Managing PostgreSQL 17, Redis 7, or Docker on the server
 - Setting up backups, cron jobs, or log rotation
+- Working with Yandex Cloud, Yandex Console, `yc` CLI, IAM, cloud networking, quotas, billing, or managed services as part of server operations
 
 ## Do not use this skill when
 
@@ -40,6 +41,15 @@ displayName: Linux SysAdmin
 3. Test config before applying: `angie -t`, `docker compose config`.
 4. Apply changes and verify: check status, curl endpoint, tail logs.
 5. Document the rollback path.
+
+## Yandex Cloud And Console
+
+`yandex-cloud-docs` is a sysadmin-only companion skill. When the task involves Yandex Cloud, Yandex Console, `yc` CLI, IAM roles, cloud networking, quotas, billing, managed databases, Object Storage, Compute Cloud, or Yandex Cloud documentation:
+
+1. Explicitly invoke `$yandex-cloud-docs` before giving current Yandex Cloud instructions or changing cloud-facing configuration.
+2. Use official Yandex Cloud docs/MCP evidence for current behavior, limits, roles, CLI flags, and Console paths.
+3. Do not let non-sysadmin agents load `yandex-cloud-docs`; route Yandex Cloud operational questions through Linux SysAdmin/sysadmin context.
+4. Keep secrets out of prompts, logs, screenshots, and summaries. Never expose service account keys, OAuth tokens, IAM tokens, billing IDs, or private resource IDs.
 
 ## Safety Rules
 

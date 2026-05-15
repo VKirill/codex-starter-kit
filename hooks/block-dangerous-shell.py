@@ -178,6 +178,32 @@ def has_option(tokens: list[str], short: str, long: str | None = None) -> bool:
     return False
 
 
+def is_scoped_systemctl_kill(tokens: list[str]) -> bool:
+    lower_tokens = [token.lower() for token in tokens]
+    if "kill" not in lower_tokens:
+        return False
+
+    options_with_values = {"--kill-who", "--signal", "-s", "--job-mode"}
+    targets: list[str] = []
+    index = lower_tokens.index("kill") + 1
+    while index < len(tokens):
+        token = tokens[index]
+        lower = lower_tokens[index]
+        if lower in options_with_values:
+            index += 2
+            continue
+        if lower.startswith("--kill-who=") or lower.startswith("--signal=") or lower.startswith("--job-mode="):
+            index += 1
+            continue
+        if token.startswith("-"):
+            index += 1
+            continue
+        targets.append(token)
+        index += 1
+
+    return bool(targets) and all(target.endswith(".scope") for target in targets)
+
+
 def classify(command: str, workdir: str) -> str | None:
     compact = " ".join(command.strip().split())
     if not compact:
@@ -212,14 +238,14 @@ def classify(command: str, workdir: str) -> str | None:
         if program in {"shutdown", "reboot", "halt", "poweroff"}:
             return "Power-management commands are blocked. If restart is needed, first report service/process state and ask the user to perform or explicitly approve the host power action."
 
-        if program == "systemctl" and contains_any(tokens, {"disable", "mask", "kill", "daemon-reload"}):
-            return "Persistent or broad systemd mutation is blocked. First inspect service status/logs and unit changes, then ask for the exact systemd action."
-
         if program == "journalctl" and any(token.startswith("--vacuum-") for token in tokens):
             return "Journal vacuum deletes logs. First run `journalctl --disk-usage` and identify the retention target, then ask the user for exact cleanup approval."
 
         if program == "go" and len(tokens) >= 3 and tokens[1] == "env" and "-w" in tokens:
             return "go env -w mutates persistent Go configuration. First run `go env <KEY>` or `go env`, explain the intended change, then ask before retrying."
+
+        if program == "claude" and any(token in {"-p", "--print"} for token in tokens[1:]):
+            return "Direct Claude print-mode commands are blocked. Use the Claude Companion plugin command path (`$claude:<mode> ...`) so Codex controls the review pack, tmux bridge, and outbox triage."
 
         if program in {"npm", "pnpm", "yarn", "bun"}:
             lower_tokens = {token.lower() for token in tokens}
@@ -233,13 +259,6 @@ def classify(command: str, workdir: str) -> str | None:
 
         if program in {"npm", "pnpm", "yarn"} and "audit" in tokens and ("fix" in tokens or "--fix" in tokens):
             return "Package-manager audit fix mutates dependencies and lockfiles. First run the matching read-only audit (`npm audit`, `pnpm audit`, or `yarn audit`) and inspect the diff plan, then ask before applying fixes."
-
-        if program == "curl":
-            unsafe_methods = {"POST", "PUT", "PATCH", "DELETE"}
-            upper_tokens = {token.upper() for token in tokens}
-            sends_body = any(token in {"-d", "--data", "--data-raw", "--data-binary", "--form", "-F"} or token.startswith("--data") for token in tokens)
-            if upper_tokens & unsafe_methods or sends_body:
-                return "curl with mutating HTTP methods or request bodies is not auto-approved. First run a read-only `curl -I <url>` or GET inspection, confirm target environment and payload, then ask before retrying the mutating request."
 
         if program == "wget" and any(token.startswith("--post-") or token in {"--method=POST", "--method=PUT", "--method=PATCH", "--method=DELETE"} for token in tokens):
             return "wget with mutating HTTP methods or request bodies is not auto-approved. First run a read-only `wget --spider <url>` or GET inspection, confirm target environment and payload, then ask before retrying."

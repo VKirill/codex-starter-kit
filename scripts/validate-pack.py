@@ -59,9 +59,20 @@ except Exception as exc:
 else:
     if not config.get("features", {}).get("hooks"):
         errors.append("templates/config.recommended.toml: hooks feature is not enabled")
-    for plugin in ["github@openai-curated", "superpowers@openai-curated"]:
+    for plugin in ["github@openai-curated"]:
         if not config.get("plugins", {}).get(plugin, {}).get("enabled"):
             errors.append(f"templates/config.recommended.toml: plugin {plugin} is not enabled")
+    if (root / "plugins" / "superpowers" / ".codex-plugin" / "plugin.json").exists():
+        marketplace = json.loads(marketplace_path.read_text(encoding="utf-8"))
+        local_plugins = {
+            entry.get("name")
+            for entry in marketplace.get("plugins", [])
+            if entry.get("source", {}).get("source") == "local"
+        }
+        if "superpowers" not in local_plugins:
+            errors.append(".agents/plugins/marketplace.json: missing local superpowers plugin")
+    else:
+        errors.append("plugins/superpowers/.codex-plugin/plugin.json: missing bundled Superpowers fork")
     for server in ["context7", "vue-docs", "nuxt-ui-remote", "nuxt-remote"]:
         if server not in config.get("mcp_servers", {}):
             errors.append(f"templates/config.recommended.toml: missing MCP server {server}")

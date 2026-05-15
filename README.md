@@ -42,9 +42,10 @@ It includes:
 - global Codex working rules in `templates/AGENTS.md`
 - a shell safety hook for risky commands
 - default command approval rules in `rules/default.rules`
-- a baseline `~/.codex/config.toml` with GitHub and Superpowers plugins
+- a baseline `~/.codex/config.toml` with GitHub plus bundled local Superpowers and Claude Companion plugins
 - public docs MCP servers: Context7, Vue, Nuxt UI, and Nuxt
 - recommended local MCP routes for Serena, GitNexus, Postgres, Open Design, and claude-mem
+- bundled `VKirill/superpowers` fork in `plugins/superpowers`
 - repo-local Claude Companion plugin prototype in `plugins/claude-companion` for interactive Claude Code reviews through tmux
 - an installer with `--dry-run`, backups, runtime refresh, and validation
 
@@ -68,7 +69,7 @@ Goal:
 - install safety hooks into ~/.codex/hooks and ~/.codex/hooks.json
 - install safe command approval rules into ~/.codex/rules
 - install the recommended ~/.codex/config.toml from templates/config.recommended.toml
-- enable GitHub and Superpowers plugin entries through config.toml
+- enable GitHub plus bundled local Superpowers and Claude Companion plugin entries through config.toml
 - enable public docs MCP servers for Context7, Vue, Nuxt UI, and Nuxt
 - check and document recommended local MCP/plugin routes for Serena, GitNexus, Postgres, Open Design, and claude-mem
 - perform full local workflow self-setup when safe: Serena, GitNexus, and claude-mem
@@ -87,7 +88,7 @@ Work step by step:
 6. Show me which paths will be replaced, then count agents and skills separately.
 7. If the dry run looks safe, run the install with backups:
    ./install.sh
-8. Verify that ~/.codex/config.toml contains GitHub and Superpowers plugins, plus MCP servers context7, vue-docs, nuxt-ui-remote, and nuxt-remote.
+8. Verify that ~/.codex/config.toml contains GitHub, superpowers@codex-starter-kit, and claude-companion@codex-starter-kit plugins, plus MCP servers context7, vue-docs, nuxt-ui-remote, and nuxt-remote.
 9. Report that Serena, GitNexus, Postgres, Open Design, and claude-mem are recommended local/plugin routes for the full starter-kit workflow.
 10. For each enabled plugin and recommended MCP/plugin route, show its GitHub/source link from README.md or templates/config.recommended.toml.
 11. Run full local workflow preflight:
@@ -226,9 +227,13 @@ Default safeguards:
 - agent TOML files are validated after install
 - `skills.config` paths are rewritten for your home directory
 - `codex plugin marketplace upgrade` and `codex mcp list` run only when `codex` is available in `PATH`
-- the local `codex-starter-kit` plugin marketplace is registered dynamically from the install path and `claude-companion@codex-starter-kit` is enabled when bundled plugin metadata exists
+- the local `codex-starter-kit` plugin marketplace is registered dynamically from the install path, and bundled plugins such as `superpowers@codex-starter-kit` and `claude-companion@codex-starter-kit` are enabled when their metadata exists
 - bundled local plugins are also copied into the Codex plugin cache, so their skills are visible in new Codex sessions without a separate manual install step
 - `rules/default.rules` reduces routine approval prompts for read-only commands such as package metadata checks, Linux inspection commands, service status checks, Docker/Kubernetes/Terraform read-only inspection, and GitHub CLI view/list commands
+- The baseline uses `approval_policy = "never"` with `workspace-write` for full trusted auto-edit handoff flow; critical commands still go through rules/hooks.
+- Recoverable deletion with `gio trash <path>` is auto-approved. Permanent deletion commands such as `rm`, `rmdir`, and `unlink` remain blocked.
+- `cp` is auto-approved for autonomous handoff file-copy workflows; sandbox scope and safety hooks still constrain where it can write.
+- `printf`, `python`, `python3`, and broad `pnpm` commands are auto-approved for autonomous handoff workflows; critical mutations such as package publish/deploy/release remain blocked by the safety hook.
 - npm workspace forms (`npm --workspace`, `npm -w`, `npm --workspaces`, `npm --prefix`) and pnpm workspace forms (`pnpm --filter`, `pnpm -F`, `pnpm --recursive`, `pnpm -r`, `pnpm --dir`, `pnpm -C`) are approved for handoff development workflows
 - `hooks/handoff-intake-classifier.py` classifies user prompts on `UserPromptSubmit` only when `~/.codex/private/handoff-classifier.env` exists. With that private file present, it works offline with deterministic fallback and uses the LLM as the primary classifier when `OPENAI_API_KEY` and `HANDOFF_CLASSIFIER_MODEL` are set. The LLM path requests strict Responses API Structured Outputs (`text.format` JSON Schema) and normalizes typed booleans such as `should_edit`, `requires_release_flow`, `requires_worktree_gate`, and `requires_gitnexus_impact`; plain JSON parsing remains only as a compatibility fallback. The rendered hook context is compact English.
 - For implementation prompts, the classifier emits a normalized engineering brief with professional architecture vocabulary and, when Codex provides a working directory, a compact repo profile from root and nearest-workspace `package.json`, `AGENTS.md`, runtime engines, common monorepo layout signals, and an allowlist of architecture-significant dependency versions such as frameworks, build tools, test tools, ORMs, databases, queues, contract libraries, UI kits, and observability libraries.
@@ -241,7 +246,7 @@ Default safeguards:
 - `hooks/handoff-post-tool-use.py` adds follow-up context after package installs, failed shell commands, `git diff`, and verification commands so Codex checks diffs/tests, maps results back to the task ledger, or fixes the concrete failure before repeating work
 - MCP servers in this kit use `default_tools_approval_mode = "approve"` for handoff flow; agents must still keep database and local-machine MCP usage read-only unless the user explicitly asks for mutation
 - `templates/AGENTS.md` includes handoff intake scoring and task-ledger rules. Non-trivial implementation work now assumes proactive subagent authorization by default, while questions, planning-only work, one-file fixes, and explicit inline-only requests stay inline. Approved Superpowers plans may use their documented worker split automatically, and implementation plans should include section review checkpoints plus a final code-review/verification pass.
-- Claude Companion is wired into `templates/AGENTS.md`, `agents_orchestrator`, planning methodology, and code review skills as an advisory second-opinion reviewer. When `claude` and `tmux` are available, high-risk plans, broad diffs, data/security reviews, and release readiness checks may run through `plugins/claude-companion/scripts/run_review.py` with strict runtime MCP profiles (`auto`, `plan`, `code`, `docs`, `none`); Codex must still classify and verify every recommendation before applying it.
+- Claude Companion is wired into `templates/AGENTS.md`, `agents_orchestrator`, planning methodology, and code review skills as an advisory second-opinion reviewer. When `claude` and `tmux` are available, high-risk plans, completed Superpowers stages/worker groups, broad changes, data/security reviews, and release readiness checks should be invoked through `$claude:*` plugin commands such as `$claude:code-review`, `$claude:security-review`, or `$claude:release-readiness-review` with plan path, changed files, scope, verification, and concrete questions. The runner injects a compact senior-review methodology for each mode; Codex must still classify and verify every recommendation before applying it.
 
 Optional prompt classification and LLM fallback:
 
@@ -279,7 +284,8 @@ The installer writes it here:
 The config enables:
 
 - GitHub plugin entry: https://github.com/openai/plugins/tree/main/plugins/github
-- Superpowers plugin entry: https://github.com/openai/plugins/tree/main/plugins/superpowers
+- bundled Superpowers fork plugin from https://github.com/VKirill/superpowers
+- bundled Claude Companion plugin from `plugins/claude-companion`
 - project docs discovery defaults
 - agent concurrency defaults
 - public remote docs MCP servers for Context7, Vue, Nuxt UI, and Nuxt
@@ -291,7 +297,7 @@ The starter kit separates portable MCP defaults from recommended local integrati
 | MCP or plugin | Status in this repo | Source | Why |
 | --- | --- | --- | --- |
 | `github@openai-curated` | enabled in `templates/config.recommended.toml` | https://github.com/openai/plugins/tree/main/plugins/github | GitHub repository, issues, pull request, and review workflow support |
-| `superpowers@openai-curated` | enabled in `templates/config.recommended.toml` | https://github.com/openai/plugins/tree/main/plugins/superpowers | planning, TDD, debugging, verification, and development workflow skills |
+| `superpowers@codex-starter-kit` | bundled local plugin, enabled by `install.py` through the local marketplace | https://github.com/VKirill/superpowers | forked planning, TDD, debugging, verification, and development workflow skills |
 | `context7` | enabled in `templates/config.recommended.toml` | https://github.com/upstash/context7 | public docs server, no local daemon required |
 | `vue-docs` | enabled in `templates/config.recommended.toml` | https://github.com/joelbarmettlerUZH/vue-mcp | public Vue ecosystem docs |
 | `nuxt-ui-remote` | enabled in `templates/config.recommended.toml` | https://github.com/nuxt/ui | public Nuxt UI docs |

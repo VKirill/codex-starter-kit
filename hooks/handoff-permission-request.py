@@ -76,6 +76,32 @@ def has_shell_metachar(command: str) -> bool:
     return any(token in command for token in (";", "&&", "||", "|", "$(", "`", ">", "<", "*", "?"))
 
 
+def is_scoped_systemctl_kill(tokens: list[str]) -> bool:
+    lower_tokens = [token.lower() for token in tokens]
+    if "kill" not in lower_tokens:
+        return False
+
+    options_with_values = {"--kill-who", "--signal", "-s", "--job-mode"}
+    targets: list[str] = []
+    index = lower_tokens.index("kill") + 1
+    while index < len(tokens):
+        token = tokens[index]
+        lower = lower_tokens[index]
+        if lower in options_with_values:
+            index += 2
+            continue
+        if lower.startswith("--kill-who=") or lower.startswith("--signal=") or lower.startswith("--job-mode="):
+            index += 1
+            continue
+        if token.startswith("-"):
+            index += 1
+            continue
+        targets.append(token)
+        index += 1
+
+    return bool(targets) and all(target.endswith(".scope") for target in targets)
+
+
 def dangerous_reason(command: str) -> str | None:
     tokens = tokenize(command)
     if not tokens:
@@ -89,14 +115,14 @@ def dangerous_reason(command: str) -> str | None:
     lower_tokens = {token.lower() for token in tokens}
     if program in {"rm", "unlink", "rmdir", "shred", "srm", "sudo", "doas", "pkexec", "su"}:
         return f"{program} is intentionally not auto-approved."
+    if program == "claude" and any(token in {"-p", "--print"} for token in tokens[1:]):
+        return "Direct Claude print-mode commands are blocked. Use the Claude Companion plugin command path (`$claude:<mode> ...`) so Codex controls the review pack, tmux bridge, and outbox triage."
     if program in {"mkfs", "mkfs.ext4", "mkfs.xfs", "mkfs.btrfs", "mkswap", "wipefs", "fdisk", "parted", "sgdisk", "gdisk"}:
         return "Disk or filesystem mutation is intentionally not auto-approved."
     if program in {"shutdown", "reboot", "halt", "poweroff"}:
         return "Host power-management commands are intentionally not auto-approved."
     if program == "dd" and any(token.startswith("of=/dev/") or token == "of=/dev" for token in tokens):
         return "Raw device writes are intentionally not auto-approved."
-    if program == "systemctl" and lower_tokens & {"disable", "mask", "kill", "daemon-reload"}:
-        return "Persistent or broad systemd mutation requires explicit user approval."
     if program in {"npm", "pnpm", "yarn", "bun"}:
         if lower_tokens & {"publish", "deploy", "release", "changeset:publish", "release:patch", "release:minor", "release:major"}:
             return "Package publish/deploy/release commands require explicit user approval."
@@ -141,7 +167,7 @@ def is_handoff_service_control(tokens: list[str]) -> bool:
         return len(tokens) >= 2 and tokens[1] in {"status", "start", "stop", "restart", "reread", "update"}
 
     if program == "systemctl":
-        return bool(lower_set & {"start", "stop", "restart", "reload"}) and not bool(lower_set & {"disable", "mask", "kill", "daemon-reload"})
+        return True
 
     if program == "service":
         return len(tokens) >= 3 and tokens[2] in {"start", "stop", "restart", "reload", "status"}

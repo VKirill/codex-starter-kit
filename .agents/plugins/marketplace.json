@@ -15,6 +15,18 @@
         "authentication": "ON_USE"
       },
       "category": "Coding"
+    },
+    {
+      "name": "superpowers",
+      "source": {
+        "source": "local",
+        "path": "./plugins/superpowers"
+      },
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "NONE"
+      },
+      "category": "Coding"
     }
   ]
 }

@@ -7,25 +7,20 @@ description: Use when a Superpowers/Codex implementation plan should be reviewed
 
 Use this skill after Codex has drafted a plan and before implementation begins.
 
-## Command
+## Plugin Command
 
-```bash
-python3 plugins/claude-companion/scripts/run_review.py \
-  --mode superpowers-plan-review \
-  --input <plan-path> \
-  --prompt "Review this implementation plan before Codex executes it" \
-  --mcp-profile plan
+```text
+$claude:superpowers-plan-review Review <plan-path> before Codex executes it. Check missing root-cause analysis, unsafe sequencing, verification gaps, scope drift, and unresolved user decisions.
 ```
 
 Use `plan-red-team` for high-risk plans:
 
-```bash
-python3 plugins/claude-companion/scripts/run_review.py \
-  --mode plan-red-team \
-  --input <plan-path> \
-  --prompt "Red-team this plan before implementation" \
-  --mcp-profile plan
+```text
+$claude:plan-red-team Red-team <plan-path> before implementation. Identify assumptions, hidden dependencies, migration risks, rollback gaps, and missing acceptance checks.
 ```
+
+Codex must invoke Claude Companion through `$claude:*` plugin commands. Do not
+ask agents to run direct Claude CLI commands.
 
 ## Integration Contract
 
@@ -40,4 +35,6 @@ When Claude returns recommendations:
 
 Claude is reviewer-only. Do not let it edit files or run commands. The runner sends context through the prompt and captures the answer through the Stop hook.
 
-Use `--mcp-profile plan` for plan and strategy reviews. It gives Claude read-only Serena and GitNexus context when available. Use `--mcp-profile none` for sensitive plans that should only use the provided file.
+Plan review prompts must include the plan path, relevant source/spec paths,
+known constraints, verification expectations, and concrete questions for Claude.
+Do not include secrets, `.env` files, private customer data, or production dumps.

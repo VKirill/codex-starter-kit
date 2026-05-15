@@ -5,8 +5,8 @@
 
 model = "gpt-5.5"
 model_reasoning_effort = "high"
-approval_policy = "on-request"
-sandbox_mode = "workspace-write"
+approval_policy = "never"
+sandbox_mode = "danger-full-access"
 web_search = "cached"
 suppress_unstable_features_warning = true
 project_doc_fallback_filenames = ["CLAUDE.md", ".agents.md"]
@@ -25,13 +25,14 @@ max_depth = 1
 [plugins."github@openai-curated"]
 enabled = true
 
-# Superpowers plugin source: https://github.com/openai/plugins/tree/main/plugins/superpowers
-[plugins."superpowers@openai-curated"]
-enabled = true
+# Superpowers is bundled from the VKirill fork as `superpowers@codex-starter-kit`
+# by `install.py`, alongside other repo-local plugins. The dynamic marketplace
+# path is appended during install so this template stays portable.
 
 # `install.py` appends a local `codex-starter-kit` marketplace and enables
-# `claude-companion@codex-starter-kit` when this repository includes bundled
-# plugins. The dynamic path is not hardcoded here so the template stays portable.
+# bundled local plugins such as `superpowers@codex-starter-kit` and
+# `claude-companion@codex-starter-kit` when this repository includes their
+# metadata. The dynamic path is not hardcoded here so the template stays portable.
 
 [features]
 plugin_hooks = true

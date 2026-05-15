@@ -6,6 +6,62 @@ prefix_rule(
 )
 
 prefix_rule(
+    pattern = ["gio", "trash"],
+    decision = "allow",
+    justification = "Recoverable deletion through the desktop trash is approved; permanent rm/rmdir/unlink remains blocked by the safety hook.",
+    match = ["gio trash .serena", "gio trash build-cache"],
+)
+
+prefix_rule(
+    pattern = ["cp"],
+    decision = "allow",
+    justification = "File copy is approved for autonomous handoff workflows. Sandbox scope and safety hooks still apply; destructive deletion commands remain blocked.",
+    match = ["cp source.txt dest.txt", "cp -R src dest"],
+)
+
+prefix_rule(
+    pattern = ["printf"],
+    decision = "allow",
+    justification = "printf is approved for autonomous handoff workflows. Safety hooks still inspect shell control operators and destructive follow-up commands.",
+    match = ["printf '%s\\n' ok"],
+)
+
+prefix_rule(
+    pattern = ["python3"],
+    decision = "allow",
+    justification = "python3 is approved for autonomous handoff workflows by user preference. Safety hooks still block explicitly destructive shell commands.",
+    match = ["python3 script.py", "python3 -m pytest"],
+)
+
+prefix_rule(
+    pattern = ["python"],
+    decision = "allow",
+    justification = "python is approved for autonomous handoff workflows by user preference. Safety hooks still block explicitly destructive shell commands.",
+    match = ["python script.py", "python -m pytest"],
+)
+
+prefix_rule(
+    pattern = ["pnpm"],
+    decision = "allow",
+    justification = "pnpm is approved for autonomous handoff workflows by user preference. The safety hook still blocks publish/deploy/release and other critical mutations.",
+    match = ["pnpm install", "pnpm test", "pnpm -C app build"],
+)
+
+prefix_rule(
+    pattern = ["claude", "-p"],
+    decision = "forbidden",
+    justification = "Direct Claude print-mode commands are blocked. Use the Claude Companion plugin command path (`$claude:<mode> ...`) so Codex controls the review pack, tmux bridge, and outbox triage.",
+    match = ["claude -p \"review this\""],
+)
+
+prefix_rule(
+    pattern = ["claude", "--print"],
+    decision = "forbidden",
+    justification = "Direct Claude print-mode commands are blocked. Use the Claude Companion plugin command path (`$claude:<mode> ...`) so Codex controls the review pack, tmux bridge, and outbox triage.",
+    match = ["claude --print \"review this\""],
+)
+
+prefix_rule(
     pattern = ["sudo"],
     decision = "forbidden",
     justification = "Privilege escalation is blocked by default. Ask the user for an explicit one-off elevated command if truly needed.",
@@ -47,15 +103,18 @@ prefix_rule(
     match = ["shutdown now"],
 )
 
-prefix_rule(pattern=["systemctl", "start"], decision="allow", justification="App/service start is approved for handoff mode. The safety hook still blocks disable/mask/kill and host power actions.")
-prefix_rule(pattern=["systemctl", "stop"], decision="allow", justification="App/service stop is approved for handoff mode. The safety hook still blocks disable/mask/kill and host power actions.")
-prefix_rule(pattern=["systemctl", "restart"], decision="allow", justification="App/service restart is approved for handoff mode. The safety hook still blocks disable/mask/kill and host power actions.")
-prefix_rule(pattern=["systemctl", "reload"], decision="allow", justification="App/service reload is approved for handoff mode. The safety hook still blocks disable/mask/kill and host power actions.")
-prefix_rule(pattern=["systemctl", "enable"], decision="prompt", justification="Changing boot-time service state affects the host. Ask for exact approval.")
-prefix_rule(pattern=["systemctl", "disable"], decision="prompt", justification="Changing boot-time service state affects the host. Ask for exact approval.")
-prefix_rule(pattern=["systemctl", "mask"], decision="prompt", justification="Masking services can break host behavior. Ask for exact approval.")
-prefix_rule(pattern=["systemctl", "kill"], decision="prompt", justification="Killing services can cause data loss or downtime. Ask for exact approval.")
-prefix_rule(pattern=["systemctl", "daemon-reload"], decision="prompt", justification="Reloading systemd units changes service manager state. Ask for exact approval.")
+prefix_rule(pattern=["systemctl"], decision="allow", justification="systemctl is fully approved for autonomous handoff workflows by explicit user preference. Host power commands remain guarded separately when invoked as reboot/shutdown/poweroff.")
+prefix_rule(pattern=["systemctl", "--user"], decision="allow", justification="User-level systemctl is fully approved for autonomous handoff workflows by explicit user preference.")
+prefix_rule(pattern=["systemctl", "start"], decision="allow", justification="systemctl is fully approved for autonomous handoff workflows by explicit user preference.")
+prefix_rule(pattern=["systemctl", "stop"], decision="allow", justification="systemctl is fully approved for autonomous handoff workflows by explicit user preference.")
+prefix_rule(pattern=["systemctl", "restart"], decision="allow", justification="systemctl is fully approved for autonomous handoff workflows by explicit user preference.")
+prefix_rule(pattern=["systemctl", "reload"], decision="allow", justification="systemctl is fully approved for autonomous handoff workflows by explicit user preference.")
+prefix_rule(pattern=["systemctl", "enable"], decision="allow", justification="systemctl is fully approved for autonomous handoff workflows by explicit user preference.")
+prefix_rule(pattern=["systemctl", "disable"], decision="allow", justification="systemctl is fully approved for autonomous handoff workflows by explicit user preference.")
+prefix_rule(pattern=["systemctl", "mask"], decision="allow", justification="systemctl is fully approved for autonomous handoff workflows by explicit user preference.")
+prefix_rule(pattern=["systemctl", "kill"], decision="allow", justification="systemctl is fully approved for autonomous handoff workflows by explicit user preference.")
+prefix_rule(pattern=["systemctl", "--user", "kill"], decision="allow", justification="systemctl is fully approved for autonomous handoff workflows by explicit user preference.")
+prefix_rule(pattern=["systemctl", "daemon-reload"], decision="allow", justification="systemctl is fully approved for autonomous handoff workflows by explicit user preference.")
 
 prefix_rule(
     pattern = ["chmod"],
@@ -362,6 +421,7 @@ prefix_rule(pattern=["gh", "run", "list"], decision="allow")
 prefix_rule(pattern=["gh", "run", "view"], decision="allow")
 prefix_rule(pattern=["curl", "-I"], decision="allow")
 prefix_rule(pattern=["curl", "--head"], decision="allow")
+prefix_rule(pattern=["curl"], decision="allow")
 prefix_rule(pattern=["wget", "--spider"], decision="allow")
 prefix_rule(pattern=["dig"], decision="allow")
 prefix_rule(pattern=["nslookup"], decision="allow")

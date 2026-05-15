@@ -133,17 +133,25 @@ def install_local_plugins(*, dry_run: bool, backup: bool, codex_home: Path) -> N
 
 def install_config(*, dry_run: bool, backup: bool, codex_home: Path) -> None:
     snippet = (REPO_ROOT / "templates" / "config.recommended.toml").read_text(encoding="utf-8")
-    if (REPO_ROOT / ".agents" / "plugins" / "marketplace.json").exists():
+    marketplace_path = REPO_ROOT / ".agents" / "plugins" / "marketplace.json"
+    if marketplace_path.exists():
+        marketplace = json.loads(marketplace_path.read_text(encoding="utf-8"))
+        plugin_entries = []
+        for plugin in marketplace.get("plugins", []):
+            if plugin.get("source", {}).get("source") != "local":
+                continue
+            plugin_name = plugin["name"]
+            plugin_entries.append(f'[plugins."{plugin_name}@codex-starter-kit"]\nenabled = true')
+        plugin_config = "\n\n".join(plugin_entries)
         snippet = snippet.rstrip() + f"""
 
 # Local Codex Starter Kit plugin marketplace. This lets Codex discover bundled
-# repo-local plugins such as Claude Companion after `codex plugin marketplace upgrade`.
+# repo-local plugins after `codex plugin marketplace upgrade`.
 [marketplaces.codex-starter-kit]
 source_type = "local"
 source = "{REPO_ROOT}"
 
-[plugins."claude-companion@codex-starter-kit"]
-enabled = true
+{plugin_config}
 """
     install_text(snippet, codex_home / "config.toml", dry_run=dry_run, backup=backup, label="baseline config")
 

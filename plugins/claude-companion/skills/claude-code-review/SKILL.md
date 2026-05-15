@@ -1,28 +1,28 @@
 ---
 name: claude-code-review
-description: Use when a completed Codex implementation or current git diff should be reviewed by interactive Claude Code. Trigger on `$claude:diff-review`, `$claude:security-review`, `$claude:test-gap-review`, `$claude:release-readiness-review`, or requests for Claude code review.
+description: Use when a completed Codex implementation should be reviewed by interactive Claude Code. Trigger on `$claude:code-review`, `$claude:security-review`, `$claude:test-gap-review`, `$claude:release-readiness-review`, or requests for Claude code review.
 ---
 
 # Claude Code Review
 
 Use this skill after implementation, before final completion claims, merge, deploy, or handoff.
 
-## Command
+## Plugin Command
 
-```bash
-python3 plugins/claude-companion/scripts/run_review.py \
-  --mode diff-review \
-  --prompt "Review the current diff" \
-  --mcp-profile code
+```text
+$claude:code-review Review the completed implementation. Plan: <plan-path or none>. Changed files: <enumerate files>. Verification: <commands and results>. Check correctness, regressions, missing tests, unsafe assumptions, security/data risks, and fix order.
 ```
 
 For specialized modes:
 
-```bash
-python3 plugins/claude-companion/scripts/run_review.py --mode security-review --prompt "Review the current diff for security risk" --mcp-profile code
-python3 plugins/claude-companion/scripts/run_review.py --mode test-gap-review --prompt "Find missing verification for this diff" --mcp-profile code
-python3 plugins/claude-companion/scripts/run_review.py --mode release-readiness-review --prompt "Check whether this is ready to report complete" --mcp-profile code
+```text
+$claude:security-review Review the completed implementation. Plan: <plan-path or none>. Changed files: <enumerate files>. Verification: <commands and results>. Check security risk, unsafe inputs, secrets exposure, and auth/permission regressions.
+$claude:test-gap-review Review the completed implementation. Plan: <plan-path or none>. Changed files: <enumerate files>. Verification: <commands and results>. Find missing verification proportional to risk.
+$claude:release-readiness-review Review the completed implementation. Plan: <plan-path or none>. Changed files: <enumerate files>. Verification: <commands and results>. Check whether Codex can report this complete.
 ```
+
+Codex must invoke Claude Companion through `$claude:*` plugin commands. Do not
+ask agents to run direct Claude CLI commands.
 
 ## Integration Contract
 
@@ -38,4 +38,7 @@ When Claude returns findings:
 
 Do not run Claude review if `claude` is missing. This plugin is not an installer and never reads Claude credentials.
 
-Use `--mcp-profile code` for code, security, data, test, and release reviews. It gives Claude read-only Serena and GitNexus context when available. Use `--no-diff` with an explicit `--input` file if the current diff contains unrelated work, secrets risk, or noisy generated files.
+Review packs must contain the plan path, changed-file list, worker/stage scope,
+verification commands and results, known risks, and concrete review questions.
+Do not include secrets, `.env` files, private customer data, production dumps, or
+unrelated files.

@@ -37,7 +37,7 @@ Loaded automatically when its description matches the active task. The body belo
 
 ## Процесс ревью
 
-1. **Что изменилось**: `git diff HEAD~N`, `git log --oneline -10` — общая картина
+1. **Что изменилось**: `git status --short`, changed-file list, `git log --oneline -10` — общая картина
 2. **Безопасность**: SQL injection, XSS, exposed secrets, unsafe inputs — потому что это самый критичный вектор
 3. **Цель задачи**: код делает то, что задумано? Сравни с описанием задачи
 4. **Edge cases**: обработаны ли граничные случаи? Особенно null/undefined, пустые массивы, сетевые ошибки
@@ -49,26 +49,17 @@ Loaded automatically when its description matches the active task. The body belo
 
 Если изменение широкое, рискованное или затрагивает security/data/billing/release readiness, запусти Claude Companion как независимое advisory-review, если он доступен. Не используй его для мелких one-file fixes и чисто стилистических правок.
 
-Типовые команды:
+Типовые Codex plugin prompts:
 
-```bash
-python3 plugins/claude-companion/scripts/run_review.py \
-  --mode diff-review \
-  --prompt "Review the current diff for bugs, regressions, missing tests, unsafe assumptions, and scope drift." \
-  --mcp-profile code
+```text
+$claude:code-review Review the completed implementation. Plan: <plan-path or none>. Changed files: <enumerate files>. Verification: <commands and results>. Check bugs, regressions, missing tests, unsafe assumptions, and scope drift.
 
-python3 plugins/claude-companion/scripts/run_review.py \
-  --mode security-review \
-  --prompt "Review the current diff for security risk, unsafe inputs, secrets exposure, and auth/permission regressions." \
-  --mcp-profile code
+$claude:security-review Review the completed implementation. Plan: <plan-path or none>. Changed files: <enumerate files>. Verification: <commands and results>. Check security risk, unsafe inputs, secrets exposure, and auth/permission regressions.
 
-python3 plugins/claude-companion/scripts/run_review.py \
-  --mode data-consistency-review \
-  --prompt "Review the current diff for data consistency, identity mapping, migration, and query/filter regressions." \
-  --mcp-profile code
+$claude:data-consistency-review Review the completed implementation. Plan: <plan-path or none>. Changed files: <enumerate files>. Verification: <commands and results>. Check data consistency, identity mapping, migration, and query/filter regressions.
 ```
 
-Если текущий diff содержит unrelated user changes, secrets risk или noisy generated files, используй `--no-diff` и передай только явный review pack через `--input`.
+Review pack должен содержать plan path, changed-file list, worker/stage scope, verification commands/results, known risks и точные вопросы для Claude. Не передавай secrets, `.env`, customer data, production dumps или unrelated files.
 
 После ответа Claude:
 

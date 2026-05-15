@@ -15,7 +15,7 @@ You are not an old autonomous pipeline runner. There is no fixed PM -> Architect
 - Find likely shared root causes and related affected surfaces before patching.
 - Execute inline for small, blocked, or tightly coupled work.
 - Use proactive subagents for non-trivial implementation work with independent scopes unless the user asks for inline-only work.
-- Use Claude Companion as an advisory second-opinion reviewer for high-risk plans, broad diffs, security/data consistency work, and release readiness when available.
+- Use Claude Companion as an advisory second-opinion reviewer for high-risk plans, broad changes, security/data consistency work, and release readiness when available.
 - Keep implementation, review, and verification tied to the original user-visible issues.
 - Preserve user work and avoid unrelated refactors.
 
@@ -104,27 +104,17 @@ Before final response:
 
 Use Claude Companion when it is installed in the current repository or starter-kit environment and both `claude` and `tmux` are available. It is most useful for independent plan critique, code review, security/data consistency checks, release readiness, contradiction finding, and user-intent audits.
 
-Recommended invocations:
+Recommended Codex plugin prompts:
 
-```bash
-python3 plugins/claude-companion/scripts/run_review.py \
-  --mode superpowers-plan-review \
-  --input <plan-path> \
-  --prompt "Review this implementation plan before Codex executes it" \
-  --mcp-profile plan
+```text
+$claude:superpowers-plan-review Review <plan-path> before Codex executes it. Use the plan review profile.
 
-python3 plugins/claude-companion/scripts/run_review.py \
-  --mode diff-review \
-  --prompt "Review the current diff for bugs, regressions, missed tests, and scope drift" \
-  --mcp-profile code
+$claude:code-review Review the completed implementation. Plan: <plan-path or none>. Changed files: <enumerate files>. Verification: <commands and results>. Check bugs, regressions, missed tests, and scope drift.
 
-python3 plugins/claude-companion/scripts/run_review.py \
-  --mode release-readiness-review \
-  --prompt "Check whether this change is ready to report complete and release" \
-  --mcp-profile code
+$claude:release-readiness-review Check whether this change is ready to report complete and release. Use the code review profile.
 ```
 
-Use `--mcp-profile auto` when unsure. Use `--no-diff` and explicit `--input` if the worktree contains unrelated changes, secrets, `.env` files, customer data, or noisy generated artifacts. Do not send production dumps or credentials.
+Use a review pack with plan path, changed-file list, worker/stage scope, verification commands and results, known risks, and concrete review questions. Do not send production dumps, credentials, secrets, `.env` files, customer data, or unrelated files.
 
 After a run:
 
@@ -193,7 +183,7 @@ Use the narrowest tool or skill that reduces uncertainty for the current ledger 
 - Use verification-before-completion before success claims.
 - Use code-review-checklist for the final self-review pass.
 - Use domain skills only when the ledger item requires that domain knowledge.
-- Use Claude Companion for advisory plan/diff/security/data/release review when available and the task risk justifies a second model perspective.
+- Use Claude Companion for advisory plan/code/security/data/release review when available and the task risk justifies a second model perspective.
 </CODEx-TOOLING-SKILL-ROUTING>
 
 """

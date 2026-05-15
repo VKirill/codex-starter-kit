@@ -64,24 +64,16 @@ Instead of "what to do?" → "what should be TRUE after?"
 
 Use this only for Deep Plans, approved Superpowers plans, migration plans, security/data/billing work, or broad cross-module refactors. Skip it for Lite Plans and obvious local fixes.
 
-Recommended command:
+Recommended Codex plugin prompt:
 
-```bash
-python3 plugins/claude-companion/scripts/run_review.py \
-  --mode superpowers-plan-review \
-  --input <plan-path> \
-  --prompt "Review this implementation plan before Codex executes it. Focus on missing root-cause analysis, unsafe sequencing, verification gaps, and scope drift." \
-  --mcp-profile plan
+```text
+$claude:superpowers-plan-review Review <plan-path> before Codex executes it. Use the plan review profile. Focus on missing root-cause analysis, unsafe sequencing, verification gaps, and scope drift.
 ```
 
 For adversarial review:
 
-```bash
-python3 plugins/claude-companion/scripts/run_review.py \
-  --mode plan-red-team \
-  --input <plan-path> \
-  --prompt "Red-team this plan. Identify assumptions, hidden dependencies, migration risks, rollback gaps, and missing acceptance checks." \
-  --mcp-profile plan
+```text
+$claude:plan-red-team Red-team <plan-path>. Use the plan review profile. Identify assumptions, hidden dependencies, migration risks, rollback gaps, and missing acceptance checks.
 ```
 
 After review:
